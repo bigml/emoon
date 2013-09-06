@@ -1,0 +1,16 @@
+Config {
+    trace_file = /var/log/emoon/regae/viki
+    trace_level = 7
+}
+
+Db {
+}
+
+Memcached {
+    ip = 127.0.0.1
+    port = 11211
+}
+
+Mevent {
+    0 = skeleton
+}

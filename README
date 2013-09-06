@@ -1,0 +1,18 @@
+目录结构
+=======
+emoon/
+|-- Make.env         编译相关宏定义
+|-- Makefile         编译文件
+|-- maketool         编译辅助工具
+|-- lib              基础公用库
+|   |-- clearsilver  clearsilver 提供基本的工具操作
+|                    (date, error, file, hash, hdf, rand, string, list...)
+|   |-- mnl          moon 封装库
+|
+|
+`-- regae            应用骨架
+    |-- fly          应用资源目录
+    |-- lib          应用公用库目录
+    |-- walk         应用逻辑目录
+    `-- run          应用执行目录
+        `-- viki     应用程序 viki 主脑
