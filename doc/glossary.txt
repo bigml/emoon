@@ -1,0 +1,13 @@
+SDL
+===
+
+SDL_Renderer *ren 渲染器，支持硬件加速模式，把东西画到窗口上，需要指定绘制窗口。
+
+SDL_Surface *sur 表面
+
+            IMG_LoadTexture() Loads an image into a texture on the rendering device
+SDL_Texture *tex 纹理，纹理创建时(把texure 画到 renderer上)，需要指定渲染器，这样便能开始渲染。
+    clear, copy, present
+
+
+SDL_ttf(), SDL_image
