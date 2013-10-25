@@ -44,6 +44,51 @@ void mstr_rand_digit_with_len(char *s, int len)
     s[x] = '\0';
 }
 
+NEOERR* mstr_array_fast_split(ULIST **list, char *s, const char *sep, int max)
+{
+    NEOERR *err;
+    char *p, *n, *f;
+    int sl;
+    int x = 0;
+
+    if (sep[0] == '\0')
+        return nerr_raise (NERR_ASSERT, "separator must be at least one character");
+
+    err = uListInit (list, 10, 0);
+    if (err) return nerr_pass(err);
+
+    sl = strlen(sep);
+    p = (sl == 1) ? strchr (s, sep[0]) : strstr (s, sep);
+    f = s;
+    while (p != NULL)
+    {
+        if (x >= max) break;
+        *p = '\0';
+        //n = strdup(f);
+        n = f;
+        //*p = sep[0];
+        if (n) err = uListAppend (*list, n);
+        else err = nerr_raise(NERR_NOMEM,
+                              "Unable to allocate memory to split %s", s);
+        if (err) goto split_err;
+        f = p+sl;
+        p = (sl == 1) ? strchr (f, sep[0]) : strstr (f, sep);
+        x++;
+    }
+    /* Handle remainder */
+    //n = strdup(f);
+    n = f;
+    if (n) err = uListAppend (*list, n);
+    else err = nerr_raise(NERR_NOMEM,
+                          "Unable to allocate memory to split %s", s);
+    if (err) goto split_err;
+    return STATUS_OK;
+
+split_err:
+    uListDestroy(list, 0);
+    return err;
+}
+
 
 /*
  * use < 10 judgement, or, you can use array ['0', '1', ..., 'e', 'f']

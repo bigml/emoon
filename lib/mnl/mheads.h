@@ -17,4 +17,24 @@
 #include "msys.h"
 #include "mutil.h"
 
+#include "mmath.h"
+#include "msdl.h"
+
+#include "data/dict.h"
+#include "data/list.h"
+#include "data/int_list.h"
+#include "data/int_hashtable.h"
+#include "data/vertex_list.h"
+#include "data/vertex_hashtable.h"
+
+#include "masset.h"
+#include "asset/mfmt.h"
+#include "asset/mvbuffer.h"
+
+#include "mentity.h"
+#include "entity/mstatic.h"
+
+#include "mrend.h"
+#include "mevt.h"
+
 #endif    /* __MHEADS_H__ */

@@ -10,6 +10,10 @@ __BEGIN_DECLS
 #endif
 #define IMAGE_MD5_SIZE  (1024*1024)
 
+#ifndef PI
+#define PI 3.14159274101257f
+#endif
+
 #define LEN_INT       16        // int max length
 #define LEN_LONG      24
 #define LEN_DT        11        // date length 2008-01-01

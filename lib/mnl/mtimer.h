@@ -3,15 +3,17 @@
  * Alberto Bertogli (albertito@blitiri.com.ar) - September/2006
  *
  * Use it like this:
- *     unsigned long elapsed;
- *     ...
- *     timer_start();
+ * 1. trace the time message
+ *     mtimer_start();
  *     ... [code] ...
- *     elapsed = timer_stop();
- *     ...
- *     printf("Time elapsed: %lu", elapsed);
+ *     mtimer_stop("useconds for load file  %s", fname);
+ * 2. use the splaped on your hand
+ *     mtimer_start();
+ *     ... [code] ...
+ *     unsigned long usec = mtimer_stop(NULL);
  *
- * Nested timers are not supported. The result is in usecs.
+ * Nested timers are supported.
+ * mtimer_start() and mtimer_stop() must be appeared in pair
  *
  * 1000000 usecs == 1 sec
  */

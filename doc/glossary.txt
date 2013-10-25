@@ -11,3 +11,33 @@ SDL_Texture *tex 纹理，纹理创建时(把texure 画到 renderer上)，需要
 
 
 SDL_ttf(), SDL_image
+
+
+
+
+OpenGL
+======
+I. scalar, vector, vertex, vertics, matrix
+   plane, box, sphere
+
+   transformation matrices:
+       A. vector: a single-column matrix
+       B. identity matrix
+
+   Multiplying a vertex by a modelview matrix transforms it. How exactly does this work?
+
+I. transformations
+    A. viewing transformation    (location of the viewer or camera)
+    B. modeling transformation   (move, rotate, scale objects around the scence)
+    C. projection transformation (orthgraphic, perspective)
+    D. viewport transformation
+
+
+
+I. texture
+    glTexParameteri
+    filter: NEAR, LINER
+    wrap: GL_TEXTURE_WRAP_S/T/R, GL_REPEAT/CLAMP/CLAMP_TO_EDGE/CLAMP_TO_BORDER
+
+
+I. geometry plane box sphere vertex mesh model triangle

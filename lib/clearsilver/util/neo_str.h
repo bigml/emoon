@@ -16,7 +16,7 @@ __BEGIN_DECLS
 
 #include <stdarg.h>
 #include <stdio.h>
-#include "neo_misc.h"
+#include "util/neo_misc.h"
 
 /* This modifies the string its called with by replacing all the white
  * space on the end with \0, and returns a pointer to the first
@@ -77,11 +77,13 @@ NEOERR *string_readline (STRING *str, FILE *fp);
 void string_clear (STRING *str);
 
 /* typedef struct _ulist ULIST; */
-#include "ulist.h"
+#include "util/ulist.h"
 /* s is not const because we actually temporarily modify the string
  * during split */
 NEOERR *string_array_split (ULIST **list, char *s, const char *sep,
                             int max);
+
+BOOL reg_search (const char *re, const char *str);
 
 /* NEOS_ESCAPE details the support escape contexts/modes handled
  * by various NEOS helper methods and reused in CS itself. */

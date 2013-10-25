@@ -1,0 +1,4 @@
+podium [type=static] {
+    rendable = podium/podium.obj
+    material = podium/podium.mat
+}

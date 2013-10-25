@@ -9,6 +9,19 @@
 
 __BEGIN_DECLS
 
+/*
+ * when you have defined item
+ */
+#define MLIST_ITERATE(list, item)                                       \
+    item = list->items[0];                                              \
+    for (int t_rsv_i = 0; t_rsv_i < list->num; item = list->items[++t_rsv_i])
+
+/*
+ * when you don't offer item
+ */
+#define ITERATE_MLIST(ul)                               \
+    for (int t_rsv_i = 0; t_rsv_i < ul->num; t_rsv_i++)
+
 /* n = 1 for 1st child */
 HDF*    mcs_obj_nth_child(HDF *hdf, int n);
 

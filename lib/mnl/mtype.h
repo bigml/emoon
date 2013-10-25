@@ -5,11 +5,6 @@
 
 __BEGIN_DECLS
 
-typedef char  byte;
-typedef float vec;
-typedef vec   vec2[2];
-typedef vec   vec3[2];
-
 typedef enum {
     CNODE_TYPE_STRING = 100,
     CNODE_TYPE_BOOL,

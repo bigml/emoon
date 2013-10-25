@@ -11,6 +11,15 @@ void mstr_rand_string(char *s, int max);
 void mstr_rand_string_with_len(char *s, int len);
 void mstr_rand_digit_with_len(char *s, int len);
 
+/*
+ * same as string_array_split(), but don't allocate memory for each item
+ * usually used when 's' contain many many seprator
+ * improve 10% performence:
+ * 40772ms on fast_split(), 45355 on string_array_split(), per 10000 seprator
+ * ****this function will overwrite 's' content****
+ */
+NEOERR* mstr_array_fast_split(ULIST **list, char *s, const char *sep, int max);
+
 
 /*
  * make sure charout has inlen*2+1 len

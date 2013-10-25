@@ -9,10 +9,17 @@
 
 #define MCS_NOT_NULLA(pa)                                       \
     if (!pa) return nerr_raise(NERR_ASSERT, "paramter null");
-#define MCS_NOT_NULLB(pa, pb)                                           \
-    if (!pa || !pb) return nerr_raise(NERR_ASSERT, "paramter null");
-#define MCS_NOT_NULLC(pa, pb, pc)                                       \
-    if (!pa || !pb || !pc) return nerr_raise(NERR_ASSERT, "paramter null");
+#define MCS_NOT_NULLB(pa, pb)                                       \
+    do {                                                            \
+        if (!pa) return nerr_raise(NERR_ASSERT, "paramter a null"); \
+        if (!pb) return nerr_raise(NERR_ASSERT, "paramter b null"); \
+    } while (0)
+#define MCS_NOT_NULLC(pa, pb, pc)                                   \
+    do {                                                            \
+        if (!pa) return nerr_raise(NERR_ASSERT, "paramter a null"); \
+        if (!pb) return nerr_raise(NERR_ASSERT, "paramter b null"); \
+        if (!pc) return nerr_raise(NERR_ASSERT, "paramter c null"); \
+    } while (0)
 
 #define ITERATE_MLIST(ul)                               \
     for (int t_rsv_i = 0; t_rsv_i < ul->num; t_rsv_i++)

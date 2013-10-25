@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <regex.h>
 #include "neo_misc.h"
 #include "neo_err.h"
 #include "neo_str.h"
@@ -410,6 +411,25 @@ char *nsprintf_alloc (int start_size, const char *fmt, ...)
   r = vnsprintf_alloc (start_size, fmt, ap);
   va_end (ap);
   return r;
+}
+
+BOOL reg_search (const char *re, const char *str)
+{
+  regex_t search_re;
+  int errcode;
+  char buf[256];
+
+  if ((errcode = regcomp(&search_re, re, REG_ICASE | REG_EXTENDED | REG_NOSUB)))
+  {
+    regerror (errcode, &search_re, buf, sizeof(buf));
+    ne_warn ("Unable to compile regex %s: %s", re, buf);
+    return FALSE;
+  }
+  errcode = regexec (&search_re, str, 0, NULL, 0);
+  regfree (&search_re);
+  if (errcode == 0)
+    return TRUE;
+  return FALSE;
 }
 
 NEOERR *string_readline (STRING *str, FILE *fp)

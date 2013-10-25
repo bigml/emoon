@@ -37,5 +37,6 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL_opengl.h>
+#include <GL/glu.h>
 
 #endif  /* __MBASE_H__ */

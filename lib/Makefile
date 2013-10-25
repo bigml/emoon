@@ -6,6 +6,9 @@ CFLAGS += -fPIC -shared
 
 SOURCES = $(wildcard clearsilver/util/*.c)
 SOURCES += $(wildcard mnl/*.c)
+SOURCES += $(wildcard mnl/data/*.c)
+SOURCES += $(wildcard mnl/asset/*.c)
+SOURCES += $(wildcard mnl/entity/*.c)
 OBJS = $(patsubst %.c, %.o, $(SOURCES))
 DEPEND = .depend
 SOURCE1 = clearsilver/util/missing.c
