@@ -118,14 +118,14 @@ static void mvb_add_model(VbufferAsset *v, model *m)
     //mtc_dbg("%s added a model[%d meshes] to GPU memory", v->base.name, m->num_meshes);
 }
 
-NEOERR* mvb_obj_load(char *dir, char *name, RendAsset **a)
+NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
 {
     char *buf, *line, fname[PATH_MAX];
     NEOERR *err;
 
     if (dir) snprintf(fname, sizeof(fname), "%s%s", dir, name);
     else strncpy(fname, name, sizeof(fname));
-    
+
     err = ne_load_file(fname, &buf);
     if (err != STATUS_OK) return nerr_pass(err);
 
@@ -202,7 +202,7 @@ NEOERR* mvb_obj_load(char *dir, char *name, RendAsset **a)
     return STATUS_OK;
 }
 
-void mvb_unload(void *p)
+void mast_vb_unload(void *p)
 {
     if (!p) return;
 

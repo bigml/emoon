@@ -1,5 +1,5 @@
-#ifndef __MVBUFFER_H__
-#define __MVBUFFER_H__
+#ifndef __MASSETVBUFFER_H__
+#define __MASSETVBUFFER_H__
 
 #include "mheads.h"
 
@@ -19,8 +19,8 @@ typedef struct {
     int num_surfaces;
 } VbufferAsset;
 
-NEOERR* mvb_obj_load(char *dir, char *name, RendAsset **a);
-void    mvb_unload(void *p);
+NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a);
+void    mast_vb_unload(void *p);
 
 __END_DECLS
-#endif    /* __MVBUFFER_H__ */
+#endif    /* __MASSETVBUFFER_H__ */

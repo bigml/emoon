@@ -30,6 +30,9 @@
 #include "masset.h"
 #include "asset/mfmt.h"
 #include "asset/mvbuffer.h"
+#include "asset/mshader.h"
+#include "asset/mtexture.h"
+#include "asset/mmaterial.h"
 
 #include "mentity.h"
 #include "entity/mstatic.h"

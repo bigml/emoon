@@ -59,6 +59,7 @@ void mentity_finish()
 {
     HASH *eh = hash_lookup(g_datah, ENTITY_KEY);
     hash_destroy(&eh);
+    hash_remove(g_datah, ENTITY_KEY);
 }
 
 NEOERR* mentity_node_new(HDF *enode, char *dir, RendEntity **e)
@@ -82,7 +83,7 @@ NEOERR* mentity_node_new(HDF *enode, char *dir, RendEntity **e)
     if (err != STATUS_OK) return nerr_pass(err);
     
     hash_remove(eh, ename);
-    hash_insert(eh, strdup(ename), e);
+    hash_insert(eh, strdup(ename), *e);
 
     return STATUS_OK;
 }
