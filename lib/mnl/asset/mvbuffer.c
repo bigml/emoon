@@ -16,6 +16,8 @@ static VbufferSurface* mvb_surface_new(mesh *m)
   
     s->num_verticies = m->num_verts;
     s->num_triangles = m->num_triangles;
+
+    mtc_dbg("mesh %d %d", m->num_verts, m->num_triangles);
   
     /* Position Normal Tangent Binormal Uvs Color      */
     /* 3        3      3       3        2   4     = 18 */
@@ -53,7 +55,7 @@ static VbufferSurface* mvb_surface_new(mesh *m)
         vb_data[(i*18)+16] = col.z;
         vb_data[(i*18)+17] = col.w;
     }
-  
+
     glBindBuffer(GL_ARRAY_BUFFER, s->vertex_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * s->num_verticies * 18,
                  vb_data, GL_STATIC_DRAW);
@@ -73,7 +75,7 @@ static void mvb_surface_delete(VbufferSurface *s)
 {
     glDeleteBuffers(1 , &s->vertex_vbo);
     glDeleteBuffers(1 , &s->triangle_vbo);
-  
+
     free(s);
 }
 

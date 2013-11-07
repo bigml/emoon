@@ -5,7 +5,16 @@
 
 __BEGIN_DECLS
 
-NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags);
+typedef struct {
+    SDL_Window *win;
+    SDL_Renderer *render;
+    int multisamples;
+    int multisamplesbuffs;
+    int width;
+    int height;
+} RendEntry;
+
+NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags, char *basedir);
 NEOERR* mrend_update();
 NEOERR* mrend_rend();
 void    mrend_present();

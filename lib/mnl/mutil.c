@@ -46,3 +46,21 @@ int mutil_satoi(const char *nptr)
 
     return atoi(nptr);
 }
+
+void mutil_dump_matrix(char *prefix)
+{
+    GLdouble projMatrix[16];
+    GLdouble modelMatrix[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+    
+    printf("\n\n\n %s projection matrix: \n", prefix);
+    for (int i = 0; i < 16; i++) {
+        printf(" %f", projMatrix[i]);
+    }
+    
+    printf("\n\n\n %s model matrix \n", prefix);
+    for (int i = 0; i < 16; i++) {
+        printf(" %f", modelMatrix[i]);
+    }
+}

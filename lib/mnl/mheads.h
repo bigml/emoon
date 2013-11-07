@@ -18,6 +18,7 @@
 #include "mutil.h"
 
 #include "mmath.h"
+#include "mgl.h"
 #include "msdl.h"
 
 #include "data/dict.h"
@@ -38,6 +39,8 @@
 #include "entity/mstatic.h"
 
 #include "mrend.h"
+#include "rend/mshadowmap.h"
+#include "rend/mforwardrend.h"
 #include "mevt.h"
 
 #endif    /* __MHEADS_H__ */

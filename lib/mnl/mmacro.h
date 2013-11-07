@@ -135,6 +135,18 @@
     } while (0)
 
 /*
+ * OpenGL related 
+ */
+
+#define MGL_CHECK_FRAMEBUFFERSTATUS()                               \
+    do {                                                            \
+        GLenum _glerror = glCheckFramebufferStatus(GL_FRAMEBUFFER); \
+        if (_glerror != GL_FRAMEBUFFER_COMPLETE) {                  \
+            mtc_err("Framebuffer Error: %d", _glerror);             \
+        }                                                           \
+    } while (0)
+
+/*
  * other stuff
  */
 #define SAFE_FREE(str)                          \

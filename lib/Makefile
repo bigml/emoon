@@ -9,6 +9,7 @@ SOURCES += $(wildcard mnl/*.c)
 SOURCES += $(wildcard mnl/data/*.c)
 SOURCES += $(wildcard mnl/asset/*.c)
 SOURCES += $(wildcard mnl/entity/*.c)
+SOURCES += $(wildcard mnl/rend/*.c)
 OBJS = $(patsubst %.c, %.o, $(SOURCES))
 DEPEND = .depend
 SOURCE1 = clearsilver/util/missing.c

@@ -26,5 +26,7 @@ void mutil_rand_numbers(int max, int out[], int outlen);
  */
 int mutil_satoi(const char *nptr);
 
+void mutil_dump_matrix(char *prefix);
+
 __END_DECLS
 #endif    /* __MUTIL_H__ */

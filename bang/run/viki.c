@@ -28,7 +28,8 @@ int main(int argc, char **argv)
                      hdf_get_int_value(g_cfg, "Window.y", 0),
                      hdf_get_int_value(g_cfg, "Window.w", 100),
                      hdf_get_int_value(g_cfg, "Window.h", 100),
-                     hdf_get_int_value(g_cfg, "Window.flags", 1));
+                     hdf_get_int_value(g_cfg, "Window.flags", 1),
+                     PATH_FLY"base/");
     DIE_NOK(err);
 
     err = lrend_init();
