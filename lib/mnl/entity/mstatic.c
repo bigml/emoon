@@ -12,7 +12,7 @@ static void mstatic_free(void *p)
 
 static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
 {
-    char *ename, *etype, *ren, *mat;
+    char *ename, *etype, *ren, *mat, *pos;
     NEOERR *err;
 
     MCS_NOT_NULLB(enode, pe);
@@ -23,6 +23,7 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     etype = mcs_obj_attr(enode, "type");
     ren = hdf_get_value(enode, "rendable", NULL);
     mat = hdf_get_value(enode, "material", NULL);
+    pos = hdf_get_value(enode, "position", "0 0 0");
 
     if (etype && strcmp(etype, "static"))
         return nerr_raise(NERR_ASSERT, "type %s not match", etype);
@@ -35,6 +36,7 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     e->base.active = true;
     e->base.receive_shadows = true;
     e->base.cast_shadows = true;
+    e->base.position = vec3_from_string(pos);
 
     err = masset_node_load(dir, ren, &e->base.rendable);
     if (err != STATUS_OK) goto errorexit;
@@ -42,7 +44,6 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     err = masset_node_load(dir, mat, &e->base.material);
     if (err != STATUS_OK) goto errorexit;
     
-    e->position = vec3_zero();
     e->rotation = quaternion_id();
     e->scale = vec3_one();
 

@@ -10,13 +10,68 @@ typedef struct {
     float pmatrix[16];
 
     void *cam;
+    int tex_counter;
 
     float wordmatrix[16];
 } ForwardEntry;
 
 static ForwardEntry *m_render = NULL;
 
-static void mrend_bind_attributes(GLsizei stride)
+static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
+{
+    float worldmatrix[16];
+
+    glUseProgram(me->prog);
+    MGL_CHECK_ERROR();
+    
+    mat4_to_array(mat4_world(e->base.position, e->scale, e->rotation), worldmatrix);
+    GLint world_matrix_u = glGetUniformLocation(me->prog, "world_matrix");
+    glUniformMatrix4fv(world_matrix_u, 1, 0, worldmatrix);
+
+    m_render->tex_counter = 0;
+
+    for (int i = 0; i < me->items->num; i++) {
+        MatItem *item;
+
+        uListGet(me->items, i, (void**)&item);
+        
+        GLint loc = glGetUniformLocation(me->prog, item->name);
+        
+        if (item->type == MAT_TYPE_INT)
+            glUniform1i(loc, item->as.i);
+        if (item->type == MAT_TYPE_FLOAT)
+            glUniform1f(loc, item->as.f);
+        if (item->type == MAT_TYPE_VEC2)
+            glUniform2f(loc, item->as.v2.x, item->as.v2.y);
+        if (item->type == MAT_TYPE_VEC3)
+            glUniform3f(loc, item->as.v3.x, item->as.v3.y, item->as.v3.z);
+        if (item->type == MAT_TYPE_VEC4)
+            glUniform4f(loc, item->as.v4.x, item->as.v4.y,
+                        item->as.v4.z, item->as.v4.z);
+        if (item->type == MAT_TYPE_TEXTURE) {
+            TexAsset *a = (TexAsset*)item->as.a;
+            
+            glUniform1i(loc, m_render->tex_counter);
+            glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
+            glBindTexture(GL_TEXTURE_2D, a->tex);
+            m_render->tex_counter++;
+        }
+    }
+}
+
+static void mforward_disuse_mat_entry()
+{
+    while (m_render->tex_counter > 0) {
+        m_render->tex_counter--;
+        glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
+        glDisable(GL_TEXTURE_2D);
+    }
+
+    glUseProgram(0);
+}
+
+
+static void mforward_bind_attributes(GLsizei stride)
 {
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, stride, (void*)0);
@@ -32,7 +87,7 @@ static void mrend_bind_attributes(GLsizei stride)
     glEnableClientState(GL_COLOR_ARRAY);
 }
 
-static void mrend_unbind_attributes()
+static void mforward_unbind_attributes()
 {
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
@@ -51,6 +106,8 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
     
     m_render = calloc(1, sizeof(ForwardEntry));
     if (!m_render) return nerr_raise(NERR_NOMEM, "alloc forward rend");
+
+    m_render->tex_counter = 0;
 
     err = masset_node_load(basedir, "shaders/forward/apost.mat", &m_render->mat);
     if (err != STATUS_OK) return nerr_pass(err);
@@ -82,7 +139,7 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
     return STATUS_OK;
 }
 
-void mrend_forwardrend_set_camera(void *c)
+void mrend_forwardrend_set_camera(CameraEntity *c)
 {
     m_render->cam = c;
 }
@@ -91,18 +148,15 @@ void mrend_forwardrend_begin()
 {
     if (!m_render) return;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+    //glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
 
     if (!m_render->cam) {
         mtc_err("Camera not set yet!");
         return;
     }
 
-    mat4 viewm;
-    mat4 projm;
-    
-    //viewm = camera_view_matrix(m_render->cam);
-    //projm = camera_proj_matrix(m_render->cam);
+    mat4 viewm = mentity_camera_view_matrix(m_render->cam);
+    mat4 projm = mentity_camera_proj_matrix(m_render->cam, mrend_viewport_ratio());
 
     mat4_to_array(viewm, m_render->vmatrix);
     mat4_to_array(projm, m_render->pmatrix);
@@ -133,26 +187,23 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
 
     if (!r || !m) return;
 
-    //mat4_to_array(mat4_word(e->position, e->scale, e->rotation), m_wordmatrix);
-
     for (int i = 0; i < r->num_surfaces; i++) {
         s = r->surfaces[i];
-        uListGet(m->entries, 0, (void**)&me);
+        uListGet(m->entries, min(i, m->entries->num), (void**)&me);
 
-        mtc_dbg("rend %d %d %d %d", i, s->vertex_vbo, s->triangle_vbo, s->num_triangles);
-
-        //GLint receive_shadows = glGetUniformLocation(me->prog, "receive_shadows");
-        //if (receive_shadows != -1) glUniform1i(receive_shadows, e->base.receive_shadows);
+        mforward_use_mat_entry(e, me);
 
         glBindBuffer(GL_ARRAY_BUFFER, s->vertex_vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s->triangle_vbo);
 
-        mrend_bind_attributes(sizeof(float) * 18);
+        mforward_bind_attributes(sizeof(float) * 18);
         glDrawElements(GL_TRIANGLES, s->num_triangles * 3, GL_UNSIGNED_INT, (void*)0);
-        mrend_unbind_attributes();
+        mforward_unbind_attributes();
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        mforward_disuse_mat_entry();
     }
 }
 
@@ -162,6 +213,9 @@ void mrend_forwardrend_end()
     MatEntry *e;
     NEOERR *err;
     
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
     err = uListGet(m->entries, 0, (void**)&e);
     RETURN_NOK(err);
     

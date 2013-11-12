@@ -1,4 +1,6 @@
+#version 120
+
 void main(void)
 {
-    gl_FragColor = gl_FrontColor;
+    gl_FragColor = gl_Color;
 }

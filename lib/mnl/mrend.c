@@ -124,3 +124,9 @@ void mrend_finish()
     free(m_render);
     m_render = NULL;
 }
+
+
+float mrend_viewport_ratio()
+{
+    return (float)m_render->height / (float)m_render->width;
+}

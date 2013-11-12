@@ -8,7 +8,7 @@ NEOERR* lrend_init()
     err = mentity_load_dir(PATH_TPL"entity/", PATH_FLY);
     if (err != STATUS_OK) return nerr_pass(err);
 
-    mrend_forwardrend_set_camera(NULL);
+    mrend_forwardrend_set_camera((CameraEntity*)mentity_node_get("camera"));
     
     return STATUS_OK;
 }

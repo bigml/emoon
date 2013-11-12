@@ -115,7 +115,7 @@ NEOERR* masset_node_load(char *dir, char *name, RendAsset **pa)
     err = uListGet(asset_drivers, driverindex, (void**)&driver);
     if (err != STATUS_OK) return nerr_pass(err);
 
-    mtc_dbg("load asset %s%s use %s %d", dir, name, driver->name, driverindex);
+    mtc_dbg("load asset %s%s", dir, name);
     
     err = driver->load(dir, name, &asset);
     if (err != STATUS_OK) return nerr_pass(err);
@@ -144,7 +144,7 @@ void masset_node_unload(void *p)
     err = uListGet(asset_drivers, a->driverindex, (void**)&driver);
     RETURN_NOK(err);
 
-    mtc_dbg("unload asset %s use %s %d", a->name, driver->name, a->driverindex);
+    mtc_dbg("unload asset %s", a->name);
     
     if (driver) driver->unload(a);
 

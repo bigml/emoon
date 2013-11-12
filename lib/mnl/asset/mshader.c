@@ -67,7 +67,7 @@ NEOERR* mast_shader_load(char *dir, char *name, GLenum type, RendAsset **a)
 
     int compileok = 0;
     glGetShaderiv(ast->shader, GL_COMPILE_STATUS, &compileok);
-    if (compileok == GL_FALSE) return nerr_raise(NERR_ASSERT, "compile shader");
+    if (compileok == GL_FALSE) return nerr_raise(NERR_ASSERT, "compile shader %s", fname);
 
     SAFE_FREE(buf);
 

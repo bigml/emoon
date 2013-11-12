@@ -20,5 +20,7 @@ NEOERR* mrend_rend();
 void    mrend_present();
 void    mrend_finish();
 
+float   mrend_viewport_ratio();
+
 __END_DECLS
 #endif    /* __MREND_H__ */

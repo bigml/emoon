@@ -2,6 +2,7 @@
 
 static EntityDriver *entity_drivers[ENTITY_DRIVER_NUM] = {
     &static_entity_driver,
+    &camera_entity_driver,
 };
 
 #ifdef __MACH__
@@ -21,6 +22,7 @@ static int mentity_type(char *type)
     if (!type) return -1;
     
     if (!strcmp(type, "static")) return 0;
+    if (!strcmp(type, "camera")) return 1;
 
     return -1;
 }
@@ -94,6 +96,14 @@ void mentity_node_free(void *p)
     
     RendEntity *e = p;
     entity_drivers[e->typeid]->free(e);
+}
+
+RendEntity* mentity_node_get(char *key)
+{
+    HASH *eh = hash_lookup(g_datah, ENTITY_KEY);
+    if (eh) return hash_lookup(eh, key);
+
+    return NULL;
 }
 
 NEOERR* mentity_load_file(char *dir, char *name, char *assetdir)

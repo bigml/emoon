@@ -6,8 +6,12 @@
 __BEGIN_DECLS
 
 #define ENTITY_KEY "_entities"
-#define ENTITY_DRIVER_NUM 1
-#define ENTITY_TYPE_STATIC 0
+#define ENTITY_DRIVER_NUM 2
+
+enum {
+    ENTITY_TYPE_STATIC = 0,
+    ENTITY_TYPE_CAMERA
+};
 
 typedef struct {
     char *name;
@@ -16,7 +20,8 @@ typedef struct {
     bool active;
     bool receive_shadows;
     bool cast_shadows;
-    
+    vec3 position;
+
     RendAsset *rendable;
     RendAsset *material;
 } RendEntity;
@@ -33,8 +38,9 @@ void    mentity_finish();
 /*
  * dir: asset files's abs path for assembly entity, can be NULL
  */
-NEOERR* mentity_node_new(HDF *enode, char *dir, RendEntity **e);
-void    mentity_node_free(void *p);
+NEOERR*     mentity_node_new(HDF *enode, char *dir, RendEntity **e);
+void        mentity_node_free(void *p);
+RendEntity* mentity_node_get(char *key);
 
 /*
  * new entity will be stored in g_datah
@@ -44,6 +50,7 @@ void    mentity_node_free(void *p);
  */
 NEOERR* mentity_load_file(char *dir, char *name, char *assetdir);
 NEOERR* mentity_load_dir(char *dir, char *assetdir);
+
 
 __END_DECLS
 #endif    /* __MENTITY_H__ */

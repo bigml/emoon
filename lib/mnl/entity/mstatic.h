@@ -8,7 +8,6 @@ __BEGIN_DECLS
 typedef struct {
     RendEntity base;
 
-    vec3 position;
     vec3 scale;
     vec4 rotation;
 } StaticEntity;

@@ -17,8 +17,6 @@ static VbufferSurface* mvb_surface_new(mesh *m)
     s->num_verticies = m->num_verts;
     s->num_triangles = m->num_triangles;
 
-    mtc_dbg("mesh %d %d", m->num_verts, m->num_triangles);
-  
     /* Position Normal Tangent Binormal Uvs Color      */
     /* 3        3      3       3        2   4     = 18 */
     float *vb_data = malloc(sizeof(float) * m->num_verts * 18);
