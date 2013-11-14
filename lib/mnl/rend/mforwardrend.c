@@ -54,6 +54,7 @@ static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
             glUniform1i(loc, m_render->tex_counter);
             glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
             glBindTexture(GL_TEXTURE_2D, a->tex);
+            glEnable(GL_TEXTURE_2D);
             m_render->tex_counter++;
         }
     }
@@ -99,8 +100,8 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
 {
     NEOERR *err;
 
-    glClearColor(0.2, 0.2, 0.2, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glClearColor(1.0, 1.0, 1.0, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (m_render) return STATUS_OK;
     
@@ -111,27 +112,44 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
 
     err = masset_node_load(basedir, "shaders/forward/apost.mat", &m_render->mat);
     if (err != STATUS_OK) return nerr_pass(err);
-    
-    glGenFramebuffers(1, &m_render->fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
 
-    glGenRenderbuffers(1, &m_render->rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_render->rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, r->width, r->height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                              GL_RENDERBUFFER, m_render->rbo);
-
+    /*
+     * texture object
+     */
     glGenTextures(1, &m_render->tex);
     glBindTexture(GL_TEXTURE_2D, m_render->tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r->width, r->height, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r->width, r->height, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    MGL_CHECK_ERROR();
+
+    /*
+     * render buffer object to store depth info
+     */
+    glGenRenderbuffers(1, &m_render->rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_render->rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, r->width, r->height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    MGL_CHECK_ERROR();
+
+    /*
+     * frame buffer object
+     */
+    glGenFramebuffers(1, &m_render->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER, m_render->rbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                            GL_TEXTURE_2D, m_render->tex, 0);
 
+    /*
+     * check status
+     */
     MGL_CHECK_FRAMEBUFFERSTATUS();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -148,8 +166,11 @@ void mrend_forwardrend_begin()
 {
     if (!m_render) return;
 
-    //glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
 
+    glClearColor(0.4, 0.4, 0.4, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     if (!m_render->cam) {
         mtc_err("Camera not set yet!");
         return;
@@ -169,6 +190,8 @@ void mrend_forwardrend_begin()
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+
+    MGL_CHECK_ERROR();
 }
 
 void mrend_forwardrend_rend_static(RendEntity *ep)
@@ -204,6 +227,7 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         mforward_disuse_mat_entry();
+        MGL_CHECK_ERROR();
     }
 }
 
@@ -212,22 +236,23 @@ void mrend_forwardrend_end()
     MatAsset *m = (MatAsset*)m_render->mat;
     MatEntry *e;
     NEOERR *err;
-    
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     err = uListGet(m->entries, 0, (void**)&e);
     RETURN_NOK(err);
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     glUseProgram(e->prog);
+    MGL_CHECK_ERROR();
 
     mgl_push_matrix();
-
     mgl_rend_texture(m_render->tex);
-    
     mgl_pop_matrix();
+    MGL_CHECK_ERROR();
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    MGL_CHECK_ERROR();
 
     glUseProgram(0);
 }

@@ -10,7 +10,7 @@ HASH *g_datah = NULL;
 #define NUM_EARTH_POINT (90 / POINT_SPACE) * (360 / POINT_SPACE) * 4
 
 SDL_Renderer *m_render = NULL;
-vec m_evert[NUM_EARTH_POINT][5];
+float m_evert[NUM_EARTH_POINT][5];
 
 GLuint LoadTextureRAW(const char *filename)
 {
@@ -67,71 +67,6 @@ void rend_sun()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void create_earth(double R, double H, double K, double Z)
-{
-    int n;
-    double a;
-    double b;
-    
-    n = 0;
-    for (b = 0; b <= 90 - POINT_SPACE; b += POINT_SPACE) {
-        for (a = 0; a <= 360 - POINT_SPACE; a += POINT_SPACE) {
-            m_evert[n][0] = R * sin((a) / 180 * PI) * sin((b) / 180 * PI) - H;
-            m_evert[n][1] = R * cos((a) / 180 * PI) * sin((b) / 180 * PI) + K;
-            m_evert[n][2] = R * cos((b) / 180 * PI) - Z;
-            m_evert[n][3] = (2 * b) / 360;
-            m_evert[n][4] = (a) / 360;
-            n++;
-            
-            m_evert[n][0] = R * sin((a) / 180 * PI) * sin((b + POINT_SPACE) / 180 * PI) - H;
-            m_evert[n][1] = R * cos((a) / 180 * PI) * sin((b + POINT_SPACE) / 180 * PI) + K;
-            m_evert[n][2] = R * cos((b + POINT_SPACE) / 180 * PI) - Z;
-            m_evert[n][3] = (2 * (b + POINT_SPACE)) / 360;
-            m_evert[n][4] = (a) / 360;
-            n++;
-            
-            m_evert[n][0] = R * sin((a + POINT_SPACE) / 180 * PI) * sin((b) / 180 * PI) - H;
-            m_evert[n][1] = R * cos((a + POINT_SPACE) / 180 * PI) * sin((b) / 180 * PI) + K;
-            m_evert[n][2] = R * cos((b) / 180 * PI) - Z;
-            m_evert[n][3] = (2 * b) / 360;
-            m_evert[n][4] = (a + POINT_SPACE) / 360;
-            n++;
-            
-            m_evert[n][0] = R * sin((a + POINT_SPACE) / 180 * PI) * sin((b + POINT_SPACE) / 180 * PI) - H;
-            m_evert[n][1] = R * cos((a + POINT_SPACE) / 180 * PI) * sin((b + POINT_SPACE) / 180 * PI) + K;
-            m_evert[n][2] = R * cos((b + POINT_SPACE) / 180 * PI) - Z;
-            m_evert[n][3] = (2 * (b + POINT_SPACE)) / 360;
-            m_evert[n][4] = (a + POINT_SPACE) / 360;
-            n++;
-        }
-    }
-}
-
-void rend_earth(GLuint etex)
-{
-    int i = 0;
-    static double angle = 0.0;
-
-    glRotatef(1.0, 0.0, 1.0, 0.0);
-
-    glBindTexture(GL_TEXTURE_2D, etex);
-
-    glColor3f(0.8, 0.8, 0.8);
-    glBegin(GL_TRIANGLE_STRIP);
-
-    for (i = 0; i < NUM_EARTH_POINT; i++) {
-        glTexCoord2f(m_evert[i][4], m_evert[i][3]);
-        glVertex3f(m_evert[i][0], m_evert[i][1], -m_evert[i][2]);
-    }
-
-    for (i = 0; i < NUM_EARTH_POINT; i++) {
-        glTexCoord2f(m_evert[i][4], -m_evert[i][3]);
-        glVertex3f(m_evert[i][0], m_evert[i][1], m_evert[i][2]);
-    }
-
-    glEnd();
-}
-
 int main(int argc, char **argv)
 {
     mtc_init("planet", 7);
@@ -179,7 +114,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    create_earth(5, 0, 0, 0);
+    mutil_create_earth(5, 0, 0, 0);
 
     SDL_Event e;
     bool quit = false;
@@ -195,7 +130,7 @@ int main(int argc, char **argv)
         }
 
         rend_sun();
-        rend_earth(etex);
+        mutil_rend_earth(etex);
 
         SDL_RenderPresent(m_render);
     }

@@ -14,5 +14,7 @@ typedef struct {
 NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a);
 void    mast_dds_unload(void *p);
 
+NEOERR* mast_texture_load_raw(char *fname, GLuint *texid);
+
 __END_DECLS
 #endif  /* MASSETTEXTURE_H__ */

@@ -10,4 +10,7 @@ SDL_PROC(void, glFramebufferTexture2D, (GLenum target, GLenum attachment, GLenum
 SDL_PROC(GLenum, glCheckFramebufferStatus, (GLenum target))
 SDL_PROC(void, glDeleteFramebuffers, (GLsizei n, GLuint *framebuffers))
 SDL_PROC(void, glDeleteRenderbuffers, (GLsizei n, GLuint *buffers))
+SDL_PROC(void, glGenerateMipmap, (GLenum target))
+SDL_PROC(GLboolean, glIsRenderbuffer, (GLuint renderbuffer))
+SDL_PROC(void, glGetRenderbufferParameteriv, (GLenum target, GLenum pname, GLint *params))
 //SDL_PROC(, gl, ())

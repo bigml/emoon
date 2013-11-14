@@ -9,8 +9,12 @@ void mgl_push_matrix();
 void mgl_rend_texture(GLuint tex);
 void mgl_pop_matrix();
 
-char* mgl_errstr(GLenum error);
-char* mgl_errstr_framebuffer(GLenum error);
+char* mgl_error_str(GLenum error);
+char* mgl_error_str_framebuffer(GLenum error);
+char* mgl_format_str(GLenum format);
+
+char* mgl_get_texture_parameters(GLuint objid);
+char* mgl_get_renderbuffer_parameters(GLuint objid);
 
 __END_DECLS
 

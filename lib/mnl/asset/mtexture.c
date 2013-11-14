@@ -366,3 +366,40 @@ void mast_dds_unload(void *p)
 {
     if (!p) return;
 }
+
+
+NEOERR* mast_texture_load_raw(char *fname, GLuint *texid)
+{
+    GLuint rtex;
+    int width, height;
+    unsigned char *data;
+    size_t len;
+    FILE *file;
+
+    MCS_NOT_NULLB(texid, fname);
+
+    file = fopen(fname, "rb");
+    if (!file) return nerr_raise(NERR_IO, "open %s failure", fname);
+    
+    width = 1024, height = 512; len = width * height *3;
+    data = calloc(1, len);
+    fread(data, len, 1, file);
+    fclose(file);
+
+    glGenTextures(1, &rtex);
+    glBindTexture(GL_TEXTURE_2D, rtex);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    free(data);
+
+    MGL_CHECK_ERROR();
+
+    *texid = rtex;
+
+    return STATUS_OK;
+}

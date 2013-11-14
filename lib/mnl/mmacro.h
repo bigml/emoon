@@ -137,19 +137,19 @@
 /*
  * OpenGL related 
  */
-#define MGL_CHECK_ERROR()                                       \
-    do {                                                        \
-        GLenum _glerror = glGetError();                         \
-        if (_glerror) {                                         \
-            mtc_err("OpenGL Error: %s", mgl_errstr(_glerror));  \
-        }                                                       \
+#define MGL_CHECK_ERROR()                                          \
+    do {                                                           \
+        GLenum _glerror = glGetError();                            \
+        if (_glerror != GL_NO_ERROR) {                             \
+            mtc_err("OpenGL Error: %s", mgl_error_str(_glerror));  \
+        }                                                          \
     } while (0)
 
 #define MGL_CHECK_FRAMEBUFFERSTATUS()                                   \
     do {                                                                \
         GLenum _glerror = glCheckFramebufferStatus(GL_FRAMEBUFFER);     \
         if (_glerror != GL_FRAMEBUFFER_COMPLETE) {                      \
-            mtc_err("Framebuffer Error: %s", mgl_errstr_framebuffer(_glerror)); \
+            mtc_err("Framebuffer Error: %s", mgl_error_str_framebuffer(_glerror)); \
         }                                                               \
     } while (0)
 

@@ -26,7 +26,21 @@ void mutil_rand_numbers(int max, int out[], int outlen);
  */
 int mutil_satoi(const char *nptr);
 
+/*
+ * res must be char xxx[LEN_TM]
+ */
+bool   mutil_getdatetime(char *res, int len, const char *fmt, time_t second);
+/*
+ * res must be char xxx[LEN_TM_GMT]
+ */
+bool   mutil_getdatetime_gmt(char *res, int len, const char *fmt, time_t second);
+time_t mutil_get_abssec(char *fmt, char *time);
+void   mutil_utc_time(struct timespec *ts);
+
+
 void mutil_dump_matrix(char *prefix);
+void mutil_create_earth(double R, double H, double K, double Z);
+void mutil_rend_earth(GLuint texid);
 
 __END_DECLS
 #endif    /* __MUTIL_H__ */

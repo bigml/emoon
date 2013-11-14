@@ -126,7 +126,41 @@ void mrend_finish()
 }
 
 
+int mrend_viewport_width()
+{
+    return m_render->width;
+}
+
+int mrend_viewport_height()
+{
+    return m_render->height;
+}
+
 float mrend_viewport_ratio()
 {
     return (float)m_render->height / (float)m_render->width;
+}
+
+void mrend_viewport_screenshot(char *name)
+{
+    char fname[PATH_MAX];
+    int w, h;
+    NEOERR *err;
+
+    w = m_render->width;
+    h = m_render->height;
+    
+    ImageAsset *i;
+
+    err = mast_image_load_from_buffer(w, h, GL_COLOR_ATTACHMENT0, (RendAsset**)&i);
+    RETURN_NOK(err);
+
+    char tm[LEN_TM] = {0};
+    mutil_getdatetime(tm, sizeof(tm), "%Y-%m-%d %H:%M:%S", time(NULL));
+    snprintf(fname, sizeof(fname), "./%s_%s.tga", name, tm);
+
+    err = mast_image_write_to_file(i, fname);
+    RETURN_NOK(err);
+    
+    mast_image_unload(i);
 }
