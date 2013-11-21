@@ -39,6 +39,7 @@
 #include "mentity.h"
 #include "entity/mstatic.h"
 #include "entity/mcamera.h"
+#include "entity/mlight.h"
 
 #include "mrend.h"
 #include "rend/mshadowmap.h"

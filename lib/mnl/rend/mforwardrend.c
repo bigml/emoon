@@ -1,32 +1,89 @@
 #include "mheads.h"
 
+#define MAX_LIGHTS 32
+
 typedef struct {
     GLuint fbo;
     GLuint rbo;
     GLuint tex;
 
-    RendAsset *mat;
-    float vmatrix[16];
-    float pmatrix[16];
+    CameraEntity *cam;
+    LightEntity *shadow_light;
 
-    void *cam;
+    float wmatrix[16];          /* world_matrxi */
+    float vmatrix[16];          /* view_matrix */
+    float pmatrix[16];          /* projection_matrix */
+    float lvmatrix[16];         /* light_view_matrix */
+    float lpmatrix[16];         /* light_projection_matrix */
+
     int tex_counter;
+    struct {
+        int position;
+        int normal;
+        int tangent;
+        int binormal;
+        int uvs;
+        int color;
+    } attr;                     /* vertex shader attribute indicator */
 
-    float wordmatrix[16];
+    int num_lights;
+    LightEntity *light[MAX_LIGHTS];
+
+    RendAsset *postmat;         /* used on forward_rend_end() */
 } ForwardEntry;
 
 static ForwardEntry *m_render = NULL;
 
 static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
 {
-    float worldmatrix[16];
+    GLuint prog = me->prog, uniid;
+    char uniname[LEN_KEYWORLD];
 
-    glUseProgram(me->prog);
+    glUseProgram(prog);
     MGL_CHECK_ERROR();
-    
-    mat4_to_array(mat4_world(e->base.position, e->scale, e->rotation), worldmatrix);
-    GLint world_matrix_u = glGetUniformLocation(me->prog, "world_matrix");
-    glUniformMatrix4fv(world_matrix_u, 1, 0, worldmatrix);
+
+#define SET_UNIFORM_MATRIX(name, val)                          \
+    uniid = glGetUniformLocation(prog, name);                  \
+    if (uniid != -1) glUniformMatrix4fv(uniid, 1, 0, val);
+
+#define SET_UNIFORM_3F(name, v3)                                 \
+    uniid = glGetUniformLocation(prog, name);                    \
+    if (uniid != -1) glUniform3f(uniid, v3.x, v3.y, v3.z);
+
+#define SET_UNIFORM_1I(name, val)                                 \
+    uniid = glGetUniformLocation(prog, name);                     \
+    if (uniid != -1) glUniform1i(uniid, val);
+
+#define SET_UNIFORM_1F(name, val)                                 \
+    uniid = glGetUniformLocation(prog, name);                     \
+    if (uniid != -1) glUniform1f(uniid, val);
+
+    /*
+     * vertex shader
+     *   I. atribute
+     *   I. matrix
+     */
+    m_render->attr.position = glGetAttribLocation(prog, "POSITION");
+    m_render->attr.normal   = glGetAttribLocation(prog, "NORMAL");
+    m_render->attr.tangent  = glGetAttribLocation(prog, "TANGENT");
+    m_render->attr.binormal = glGetAttribLocation(prog, "BINORMAL");
+    m_render->attr.uvs      = glGetAttribLocation(prog, "UVS");
+    m_render->attr.color    = glGetAttribLocation(prog, "COLOR");
+
+    SET_UNIFORM_MATRIX("WORLD_MATRIX",      m_render->wmatrix);
+    SET_UNIFORM_MATRIX("VIEW_MATRIX",       m_render->vmatrix);
+    SET_UNIFORM_MATRIX("PROJ_MATRIX",       m_render->pmatrix);
+    SET_UNIFORM_MATRIX("LIGHT_VIEW_MATRIX", m_render->lvmatrix);
+    SET_UNIFORM_MATRIX("LIGHT_PROJ_MATRIX", m_render->lpmatrix);
+
+    /*
+     * fragment shader
+     *   I. uniform CAMERA
+     *   I. uniform ATTR
+     *   I. uniform MAP
+     *   I. uniform LIGHT
+     */
+    SET_UNIFORM_3F("CAMERA_POS", m_render->cam->base.position);
 
     m_render->tex_counter = 0;
 
@@ -34,30 +91,61 @@ static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
         MatItem *item;
 
         uListGet(me->items, i, (void**)&item);
-        
-        GLint loc = glGetUniformLocation(me->prog, item->name);
-        
+
+        snprintf(uniname, sizeof(uniname), "ATTR.%s", item->name);
+        uniid = glGetUniformLocation(prog, uniname);
+
         if (item->type == MAT_TYPE_INT)
-            glUniform1i(loc, item->as.i);
+            glUniform1i(uniid, item->as.i);
         if (item->type == MAT_TYPE_FLOAT)
-            glUniform1f(loc, item->as.f);
+            glUniform1f(uniid, item->as.f);
         if (item->type == MAT_TYPE_VEC2)
-            glUniform2f(loc, item->as.v2.x, item->as.v2.y);
+            glUniform2f(uniid, item->as.v2.x, item->as.v2.y);
         if (item->type == MAT_TYPE_VEC3)
-            glUniform3f(loc, item->as.v3.x, item->as.v3.y, item->as.v3.z);
+            glUniform3f(uniid, item->as.v3.x, item->as.v3.y, item->as.v3.z);
         if (item->type == MAT_TYPE_VEC4)
-            glUniform4f(loc, item->as.v4.x, item->as.v4.y,
+            glUniform4f(uniid, item->as.v4.x, item->as.v4.y,
                         item->as.v4.z, item->as.v4.z);
         if (item->type == MAT_TYPE_TEXTURE) {
+            snprintf(uniname, sizeof(uniname), "MAP.%s", item->name);
+            uniid = glGetUniformLocation(prog, uniname);
+
             TexAsset *a = (TexAsset*)item->as.a;
-            
-            glUniform1i(loc, m_render->tex_counter);
+
+            glUniform1i(uniid, m_render->tex_counter);
             glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
             glBindTexture(GL_TEXTURE_2D, a->tex);
             glEnable(GL_TEXTURE_2D);
             m_render->tex_counter++;
         }
     }
+
+    SET_UNIFORM_1I("NUM_LIGHTS", m_render->num_lights);
+
+    for (int i = 0; i < m_render->num_lights; i++) {
+        snprintf(uniname, sizeof(uniname), "LIGHT[%d].power", i);
+        SET_UNIFORM_1F(uniname, m_render->light[i]->power);
+
+        snprintf(uniname, sizeof(uniname), "LIGHT[%d].falloff", i);
+        SET_UNIFORM_1F(uniname, m_render->light[i]->falloff);
+
+        snprintf(uniname, sizeof(uniname), "LIGHT[%d].position", i);
+        SET_UNIFORM_3F(uniname, m_render->light[i]->base.position);
+
+        snprintf(uniname, sizeof(uniname), "LIGHT[%d].target", i);
+        SET_UNIFORM_3F(uniname, m_render->light[i]->target);
+
+        snprintf(uniname, sizeof(uniname), "LIGHT[%d].diffuse", i);
+        SET_UNIFORM_3F(uniname, m_render->light[i]->diffuse);
+
+        snprintf(uniname, sizeof(uniname), "LIGHT[%d].ambient", i);
+        SET_UNIFORM_3F(uniname, m_render->light[i]->ambient);
+
+        snprintf(uniname, sizeof(uniname), "LIGHT[%d].specular", i);
+        SET_UNIFORM_3F(uniname, m_render->light[i]->specular);
+    }
+
+    MGL_CHECK_ERROR();
 }
 
 static void mforward_disuse_mat_entry()
@@ -74,43 +162,74 @@ static void mforward_disuse_mat_entry()
 
 static void mforward_bind_attributes(GLsizei stride)
 {
+    /*
+     * vertex layout used by glDrawElements()
+     */
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, stride, (void*)0);
-  
+
     glEnableClientState(GL_NORMAL_ARRAY);
     glNormalPointer(GL_FLOAT, stride, (void*)(sizeof(float) * 3));
-  
+
     glClientActiveTexture(GL_TEXTURE0);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glTexCoordPointer(2, GL_FLOAT, stride, (void*)(sizeof(float) * 12));
-  
+
     glColorPointer(4, GL_FLOAT, stride, (void*)(sizeof(float) * 14));
     glEnableClientState(GL_COLOR_ARRAY);
+
+    /*
+     * vertex layout used by GLSL vertex shader
+     */
+#define SET_VERTEX_ATTR(attr, size, pos)                                \
+    if (attr != -1) {                                                   \
+        glVertexAttribPointer(attr, size, GL_FLOAT, GL_FALSE,           \
+                              stride, (void*)(sizeof(float)*pos));      \
+        glEnableVertexAttribArray(attr);                                \
+    }
+
+    SET_VERTEX_ATTR(m_render->attr.position, 3, 0);
+    SET_VERTEX_ATTR(m_render->attr.normal,   3, 3);
+    SET_VERTEX_ATTR(m_render->attr.tangent,  3, 6);
+    SET_VERTEX_ATTR(m_render->attr.binormal, 3, 9);
+    SET_VERTEX_ATTR(m_render->attr.uvs,      2, 12);
+    SET_VERTEX_ATTR(m_render->attr.color,    4, 14);
 }
 
 static void mforward_unbind_attributes()
 {
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);  
-    glDisableClientState(GL_COLOR_ARRAY);  
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+
+#define DISABLE_VERTEX_ATTR(attr)                       \
+    if (attr != -1) glDisableVertexAttribArray(attr);
+
+    DISABLE_VERTEX_ATTR(m_render->attr.position);
+    DISABLE_VERTEX_ATTR(m_render->attr.normal);
+    DISABLE_VERTEX_ATTR(m_render->attr.tangent);
+    DISABLE_VERTEX_ATTR(m_render->attr.binormal);
+    DISABLE_VERTEX_ATTR(m_render->attr.uvs);
+    DISABLE_VERTEX_ATTR(m_render->attr.color);
 }
 
 NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
 {
     NEOERR *err;
 
-    glClearColor(1.0, 1.0, 1.0, 1.0f);
+    glClearColor(0.4, 0.4, 0.4, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (m_render) return STATUS_OK;
-    
+
     m_render = calloc(1, sizeof(ForwardEntry));
     if (!m_render) return nerr_raise(NERR_NOMEM, "alloc forward rend");
 
     m_render->tex_counter = 0;
+    m_render->num_lights = 0;
 
-    err = masset_node_load(basedir, "shaders/forward/apost.mat", &m_render->mat);
+    err = masset_node_load(basedir, "shaders/forward/apost.mat", &m_render->postmat);
     if (err != STATUS_OK) return nerr_pass(err);
 
     /*
@@ -162,17 +281,34 @@ void mrend_forwardrend_set_camera(CameraEntity *c)
     m_render->cam = c;
 }
 
+void mrend_forwardrend_set_shadow_light(LightEntity *e)
+{
+    m_render->shadow_light = e;
+}
+
+void mrend_forwardrend_add_light(LightEntity *e)
+{
+    if (m_render->num_lights >= MAX_LIGHTS) {
+        mtc_warn("Cannot add extra light. Maxiumum lights reached!");
+        return;
+    }
+
+    m_render->light[m_render->num_lights++] = e;
+}
+
 void mrend_forwardrend_begin()
 {
     if (!m_render) return;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+    //glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
 
-    glClearColor(0.4, 0.4, 0.4, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
     if (!m_render->cam) {
         mtc_err("Camera not set yet!");
+        return;
+    }
+
+    if (!m_render->shadow_light) {
+        mtc_err("Light not set yet!");
         return;
     }
 
@@ -187,6 +323,12 @@ void mrend_forwardrend_begin()
 
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(m_render->pmatrix);
+
+    viewm = mentity_light_view_matrix(m_render->shadow_light);
+    projm = mentity_light_proj_matrix(m_render->shadow_light);
+
+    mat4_to_array(viewm, m_render->lvmatrix);
+    mat4_to_array(projm, m_render->lpmatrix);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -209,6 +351,8 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
     m = (MatAsset*)e->base.material;
 
     if (!r || !m) return;
+
+    mat4_to_array(mat4_world(e->base.position, e->scale, e->rotation), m_render->wmatrix);
 
     for (int i = 0; i < r->num_surfaces; i++) {
         s = r->surfaces[i];
@@ -233,7 +377,7 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
 
 void mrend_forwardrend_end()
 {
-    MatAsset *m = (MatAsset*)m_render->mat;
+    MatAsset *m = (MatAsset*)m_render->postmat;
     MatEntry *e;
     NEOERR *err;
 
@@ -241,13 +385,13 @@ void mrend_forwardrend_end()
 
     err = uListGet(m->entries, 0, (void**)&e);
     RETURN_NOK(err);
-    
+
     glUseProgram(e->prog);
     MGL_CHECK_ERROR();
 
-    mgl_push_matrix();
+    //mgl_push_matrix();
     mgl_rend_texture(m_render->tex);
-    mgl_pop_matrix();
+    //mgl_pop_matrix();
     MGL_CHECK_ERROR();
 
     glDisable(GL_DEPTH_TEST);
@@ -260,11 +404,11 @@ void mrend_forwardrend_end()
 void mrend_forwardrend_finish()
 {
     if (!m_render) return;
-    
+
     glDeleteFramebuffers(1, &m_render->fbo);
     glDeleteRenderbuffers(1, &m_render->rbo);
     glDeleteTextures(1, &m_render->tex);
-    
+
     free(m_render);
     m_render = NULL;
 }

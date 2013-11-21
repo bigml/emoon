@@ -6,17 +6,18 @@
 __BEGIN_DECLS
 
 #define ENTITY_KEY "_entities"
-#define ENTITY_DRIVER_NUM 2
+#define ENTITY_DRIVER_NUM 3
 
 enum {
     ENTITY_TYPE_STATIC = 0,
-    ENTITY_TYPE_CAMERA
+    ENTITY_TYPE_CAMERA,
+    ENTITY_TYPE_LIGHT
 };
 
 typedef struct {
     char *name;
     int typeid;
-    
+
     bool active;
     bool receive_shadows;
     bool cast_shadows;

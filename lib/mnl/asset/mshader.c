@@ -19,7 +19,7 @@ NEOERR* mast_shader_prog_attach_shader(GLuint prog, RendAsset *a)
     MCS_NOT_NULLA(a);
 
     ShaderAsset *ast = (ShaderAsset*)a;
-    
+
     if (!glIsProgram(prog)) return nerr_raise(NERR_ASSERT, "not a shader prog");
     if (!glIsShader(ast->shader)) return nerr_raise(NERR_ASSERT, "not a shader");
 
@@ -50,7 +50,7 @@ NEOERR* mast_shader_load(char *dir, char *name, GLenum type, RendAsset **a)
 {
     char fname[PATH_MAX], *buf;
     NEOERR *err;
-    
+
     MCS_NOT_NULLB(name, a);
 
     if (dir) snprintf(fname, sizeof(fname), "%s%s", dir, name);
@@ -67,7 +67,12 @@ NEOERR* mast_shader_load(char *dir, char *name, GLenum type, RendAsset **a)
 
     int compileok = 0;
     glGetShaderiv(ast->shader, GL_COMPILE_STATUS, &compileok);
-    if (compileok == GL_FALSE) return nerr_raise(NERR_ASSERT, "compile shader %s", fname);
+    if (compileok == GL_FALSE) {
+        char infolog[256];
+        int infolen;
+        glGetShaderInfoLog(ast->shader, sizeof(infolog), &infolen, infolog);
+        return nerr_raise(NERR_ASSERT, "compile shader %s: %s", fname, infolog);
+    }
 
     SAFE_FREE(buf);
 

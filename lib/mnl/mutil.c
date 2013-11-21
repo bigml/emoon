@@ -110,7 +110,7 @@ void mutil_dump_matrix(char *prefix)
         printf(" %f", projMatrix[i]);
     }
     
-    printf("\n\n\n %s model matrix \n", prefix);
+    printf("\n %s model matrix \n", prefix);
     for (int i = 0; i < 16; i++) {
         printf(" %f", modelMatrix[i]);
     }

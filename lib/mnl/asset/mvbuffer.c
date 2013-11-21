@@ -13,14 +13,14 @@ static VbufferSurface* mvb_surface_new(mesh *m)
 
     glGenBuffers(1, &s->vertex_vbo);
     glGenBuffers(1, &s->triangle_vbo);
-  
+
     s->num_verticies = m->num_verts;
     s->num_triangles = m->num_triangles;
 
     /* Position Normal Tangent Binormal Uvs Color      */
     /* 3        3      3       3        2   4     = 18 */
     float *vb_data = malloc(sizeof(float) * m->num_verts * 18);
-  
+
     for(int i = 0; i < m->num_verts; i++) {
         vec3 pos = m->verticies[i].position;
         vec3 norm = m->verticies[i].normal;
@@ -28,26 +28,26 @@ static VbufferSurface* mvb_surface_new(mesh *m)
         vec3 bino = m->verticies[i].binormal;
         vec2 uvs = m->verticies[i].uvs;
         vec4 col = m->verticies[i].color;
-    
+
         vb_data[(i*18)+0] = pos.x;
         vb_data[(i*18)+1] = pos.y;
         vb_data[(i*18)+2] = pos.z;
-    
+
         vb_data[(i*18)+3] = norm.x;
         vb_data[(i*18)+4] = norm.y;
         vb_data[(i*18)+5] = norm.z;
-    
+
         vb_data[(i*18)+6] = tang.x;
         vb_data[(i*18)+7] = tang.y;
         vb_data[(i*18)+8] = tang.z;
-    
+
         vb_data[(i*18)+9] = bino.x;
         vb_data[(i*18)+10] = bino.y;
         vb_data[(i*18)+11] = bino.z;
-    
+
         vb_data[(i*18)+12] = uvs.x;
         vb_data[(i*18)+13] = uvs.y;
-    
+
         vb_data[(i*18)+14] = col.x;
         vb_data[(i*18)+15] = col.y;
         vb_data[(i*18)+16] = col.z;
@@ -58,14 +58,14 @@ static VbufferSurface* mvb_surface_new(mesh *m)
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * s->num_verticies * 18,
                  vb_data, GL_STATIC_DRAW);
     free(vb_data);
-  
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s->triangle_vbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * s->num_triangles * 3,
                  m->triangles, GL_STATIC_DRAW);
-  
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-  
+
     return s;
 }
 
@@ -142,7 +142,7 @@ NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
     vertex_list *vlist = vertex_list_new();
     int_list    *tlist = int_list_new();
 
-    vertex_list *vdata = vertex_list_new(); 
+    vertex_list *vdata = vertex_list_new();
     vertex_hashtable *vhash = vertex_hashtable_new(4096);
 
     VbufferAsset *v = mvb_node_new();
@@ -151,7 +151,7 @@ NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
 
     MLIST_ITERATE(lines, line) {
         line = neos_strip(line);
-        
+
         if (line[0] == 'g') {
             if (amesh) {
                 mvb_add_group(omode, amesh, vert_index, tlist, vlist);
@@ -161,14 +161,14 @@ NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
             vertex_hashtable_delete(vhash);
             vertex_list_delete(vlist);
             int_list_delete(tlist);
-      
+
             vlist = vertex_list_new();
             tlist = int_list_new();
             vhash = vertex_hashtable_new(4096);
 
             amesh = calloc(1, sizeof(mesh));
         }
-        
+
         mfmt_obj_parse_line(line, &vert_index,
                             vlist, tlist,
                             vdata, vhash,
@@ -179,13 +179,13 @@ NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
     SAFE_FREE(buf);
 
     mvb_add_group(omode, amesh, vert_index, tlist, vlist);
-    
+
     vertex_list_delete(vlist);
     int_list_delete(tlist);
 
     vertex_list_delete(vdata);
     vertex_hashtable_delete(vhash);
-    
+
     if (omode->num_meshes <= 0)
         return nerr_raise(NERR_ASSERT, "file %s have no groups", fname);
 
@@ -196,7 +196,7 @@ NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
     mvb_add_model(v, omode);
 
     *a = (RendAsset*)v;
-    
+
     model_delete(omode);
 
     return STATUS_OK;
@@ -213,7 +213,7 @@ void mast_vb_unload(void *p)
     }
 
     //mtc_dbg("%s freed %d meshes GPU memory", v->base.name, v->num_surfaces);
-    
+
     /*
      * RendAsset node freed by caller: masset_node_unload().
      */

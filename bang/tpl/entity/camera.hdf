@@ -1,4 +1,4 @@
 camera [type=camera] {
-    position = 25.0 25.0 10.0
-    target = 0 5 0
+    position = 0.0 20.0 40.0
+    target = 0 5 0.0
 }

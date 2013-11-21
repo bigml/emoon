@@ -5,7 +5,7 @@ static RendEntry *m_render = NULL;
 NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags, char *basedir)
 {
     NEOERR *err;
-    
+
     if (m_render) return nerr_raise(NERR_ASSERT, "rend already inited");
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -33,16 +33,18 @@ NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags, char *bas
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_render->multisamples);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, m_render->multisamplesbuffs);
 
-    glClearDepth(1);
-    glClearColor(0.6, 0.6, 0.6, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     msdl_load_extensions();
     msdl_trace_info();
 
     err = masset_init();
     if (err != STATUS_OK) return nerr_pass(err);
-    
+
     err = mentity_init();
     if (err != STATUS_OK) return nerr_pass(err);
 
@@ -84,7 +86,7 @@ NEOERR* mrend_rend()
     e = hash_next(eh, (void**)&key);
     while (e) {
         mrend_shadowmap_rend_static(e);
-        
+
         e = hash_next(eh, (void**)&key);
     }
     mrend_shadowmap_end();
@@ -97,7 +99,7 @@ NEOERR* mrend_rend()
     e = hash_next(eh, (void**)&key);
     while (e) {
         mrend_forwardrend_rend_static(e);
-        
+
         e = hash_next(eh, (void**)&key);
     }
     mrend_forwardrend_end();
@@ -116,11 +118,11 @@ void mrend_finish()
 
     mrend_shadowmap_finish();
     mrend_forwardrend_finish();
-    
+
     SDL_DestroyRenderer(m_render->render);
     SDL_DestroyWindow(m_render->win);
     SDL_Quit();
-    
+
     free(m_render);
     m_render = NULL;
 }
@@ -149,7 +151,7 @@ void mrend_viewport_screenshot(char *name)
 
     w = m_render->width;
     h = m_render->height;
-    
+
     ImageAsset *i;
 
     err = mast_image_load_from_buffer(w, h, GL_COLOR_ATTACHMENT0, (RendAsset**)&i);
@@ -161,6 +163,6 @@ void mrend_viewport_screenshot(char *name)
 
     err = mast_image_write_to_file(i, fname);
     RETURN_NOK(err);
-    
+
     mast_image_unload(i);
 }

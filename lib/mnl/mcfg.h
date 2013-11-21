@@ -25,6 +25,7 @@ __BEGIN_DECLS
 #define LEN_URL       PATH_MAX
 #define LEN_LINE      (1024*100)
 #define LEN_SQL       1024
+#define LEN_KEYWORLD  64
 #define LEN_HDF_KEY   64
 #define LEN_HASH_KEY  128
 #define LEN_MMC_KEY   256                    /* memcached key length */

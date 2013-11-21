@@ -4,12 +4,15 @@
 NEOERR* lrend_init()
 {
     NEOERR *err;
-    
+
     err = mentity_load_dir(PATH_TPL"entity/", PATH_FLY);
     if (err != STATUS_OK) return nerr_pass(err);
 
     mrend_forwardrend_set_camera((CameraEntity*)mentity_node_get("camera"));
-    
+    mrend_forwardrend_set_shadow_light((LightEntity*)mentity_node_get("sun"));
+    mrend_forwardrend_add_light((LightEntity*)mentity_node_get("sun"));
+    mrend_forwardrend_add_light((LightEntity*)mentity_node_get("backlight"));
+
     return STATUS_OK;
 }
 

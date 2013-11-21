@@ -3,6 +3,7 @@
 static EntityDriver *entity_drivers[ENTITY_DRIVER_NUM] = {
     &static_entity_driver,
     &camera_entity_driver,
+    &light_entity_driver,
 };
 
 #ifdef __MACH__
@@ -20,9 +21,10 @@ static int mentity_config(const struct dirent *ent)
 static int mentity_type(char *type)
 {
     if (!type) return -1;
-    
+
     if (!strcmp(type, "static")) return 0;
     if (!strcmp(type, "camera")) return 1;
+    if (!strcmp(type, "light")) return 2;
 
     return -1;
 }
@@ -40,7 +42,7 @@ static void hash_entity_free(void *a)
 NEOERR* mentity_init()
 {
     NEOERR *err;
-    
+
     if (!g_datah) {
         err = hash_init(&g_datah, hash_str_hash, hash_str_comp, NULL);
         if (err != STATUS_OK) return nerr_pass(err);
@@ -53,7 +55,7 @@ NEOERR* mentity_init()
 
         hash_insert(g_datah, ENTITY_KEY, (void*)eh);
     }
-    
+
     return STATUS_OK;
 }
 
@@ -71,7 +73,7 @@ NEOERR* mentity_node_new(HDF *enode, char *dir, RendEntity **e)
     NEOERR *err;
 
     eh = hash_lookup(g_datah, ENTITY_KEY);
-    
+
     MCS_NOT_NULLC(enode, e, eh);
 
     ename = hdf_obj_name(enode);
@@ -83,7 +85,7 @@ NEOERR* mentity_node_new(HDF *enode, char *dir, RendEntity **e)
 
     err = entity_drivers[typeid]->new(enode, dir, e);
     if (err != STATUS_OK) return nerr_pass(err);
-    
+
     hash_remove(eh, ename);
     hash_insert(eh, strdup(ename), *e);
 
@@ -93,7 +95,7 @@ NEOERR* mentity_node_new(HDF *enode, char *dir, RendEntity **e)
 void mentity_node_free(void *p)
 {
     if (!p) return;
-    
+
     RendEntity *e = p;
     entity_drivers[e->typeid]->free(e);
 }
@@ -115,10 +117,10 @@ NEOERR* mentity_load_file(char *dir, char *name, char *assetdir)
     MCS_NOT_NULLB(dir, name);
 
     snprintf(fname, sizeof(fname), "%s/%s", dir, name);
-    
+
     err = hdf_init(&node);
     if (err != STATUS_OK) return nerr_pass(err);
-    
+
     err = hdf_read_file(node, fname);
     if (err != STATUS_OK) return nerr_pass(err);
 
@@ -135,7 +137,7 @@ NEOERR* mentity_load_file(char *dir, char *name, char *assetdir)
     wnext:
         cnode = hdf_obj_next(cnode);
     }
-    
+
     return STATUS_OK;
 }
 
@@ -144,7 +146,7 @@ NEOERR* mentity_load_dir(char *dir, char *assetdir)
     struct dirent **eps = NULL;
     int n;
     NEOERR *err;
-    
+
     MCS_NOT_NULLA(dir);
 
     n = scandir(dir, &eps, mentity_config, alphasort);
@@ -158,6 +160,6 @@ NEOERR* mentity_load_dir(char *dir, char *assetdir)
 
     if (n > 0) free(eps);
     else mtc_warn("no .hdf file found in %s", dir);
-    
+
     return STATUS_OK;
 }
