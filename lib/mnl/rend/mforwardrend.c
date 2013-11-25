@@ -218,10 +218,10 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
 {
     NEOERR *err;
 
-    glClearColor(0.4, 0.4, 0.4, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     if (m_render) return STATUS_OK;
+
+    glClearColor(0.2, 0.2, 0.2, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_render = calloc(1, sizeof(ForwardEntry));
     if (!m_render) return nerr_raise(NERR_NOMEM, "alloc forward rend");
@@ -298,9 +298,15 @@ void mrend_forwardrend_add_light(LightEntity *e)
 
 void mrend_forwardrend_begin()
 {
+    mat4 viewm;
+    mat4 projm;
+
     if (!m_render) return;
 
-    //glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+
+    glClearColor(0.8, 0.8, 0.8, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (!m_render->cam) {
         mtc_err("Camera not set yet!");
@@ -312,23 +318,20 @@ void mrend_forwardrend_begin()
         return;
     }
 
-    mat4 viewm = mentity_camera_view_matrix(m_render->cam);
-    mat4 projm = mentity_camera_proj_matrix(m_render->cam, mrend_viewport_ratio());
-
+    viewm = mentity_camera_view_matrix(m_render->cam);
+    projm = mentity_camera_proj_matrix(m_render->cam, mrend_viewport_ratio());
     mat4_to_array(viewm, m_render->vmatrix);
     mat4_to_array(projm, m_render->pmatrix);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(m_render->vmatrix);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(m_render->pmatrix);
-
     viewm = mentity_light_view_matrix(m_render->shadow_light);
     projm = mentity_light_proj_matrix(m_render->shadow_light);
-
     mat4_to_array(viewm, m_render->lvmatrix);
     mat4_to_array(projm, m_render->lpmatrix);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(m_render->vmatrix);
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(m_render->pmatrix);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -386,12 +389,13 @@ void mrend_forwardrend_end()
     err = uListGet(m->entries, 0, (void**)&e);
     RETURN_NOK(err);
 
-    glUseProgram(e->prog);
+    //glUseProgram(e->prog);
+    glUseProgram(0);
     MGL_CHECK_ERROR();
 
-    //mgl_push_matrix();
+    mgl_push_matrix();
     mgl_rend_texture(m_render->tex);
-    //mgl_pop_matrix();
+    mgl_pop_matrix();
     MGL_CHECK_ERROR();
 
     glDisable(GL_DEPTH_TEST);

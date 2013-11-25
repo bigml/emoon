@@ -9,7 +9,7 @@ static void mcamera_free(void *p)
     CameraEntity *e = p;
 
     if (!e) return;
-    
+
     free(e->base.name);
     free(e);
 }
@@ -21,7 +21,7 @@ static NEOERR* mcamera_new(HDF *enode, char *dir, RendEntity **pe)
     MCS_NOT_NULLB(enode, pe);
 
     *pe = NULL;
-    
+
     ename = hdf_obj_name(enode);
     etype = mcs_obj_attr(enode, "type");
     pos = hdf_get_value(enode, "position", "0 0 0");
@@ -32,7 +32,7 @@ static NEOERR* mcamera_new(HDF *enode, char *dir, RendEntity **pe)
 
     CameraEntity *e = calloc(1, sizeof(CameraEntity));
     if (!e) return nerr_raise(NERR_NOMEM, "alloc entity");
-    
+
     e->base.name = strdup(ename);
     e->base.typeid = ENTITY_TYPE_CAMERA;
     e->base.active = true;
@@ -40,13 +40,18 @@ static NEOERR* mcamera_new(HDF *enode, char *dir, RendEntity **pe)
     e->base.cast_shadows = true;
     e->base.position = vec3_from_string(pos);
 
+    /* s must be a float macro */
+#define str(s) #s
+#define xstr(s) str(s)
+#define SET_CONFIG_1F(val, key, def) val = atof(hdf_get_value(enode, key, xstr(def)))
+
     e->target = vec3_from_string(target);
-    e->fov = DEFAULT_FOV;
-    e->near_clip = DEFAULT_NEAR_CLIP;
-    e->far_clip = DEFAULT_FAR_CLIP;
+    SET_CONFIG_1F(e->fov, "fov", DEFAULT_FOV);
+    SET_CONFIG_1F(e->near_clip, "near_clip", DEFAULT_NEAR_CLIP);
+    SET_CONFIG_1F(e->far_clip,  "far_clip",  DEFAULT_FAR_CLIP);
 
     *pe = (RendEntity*)e;
-    
+
     return STATUS_OK;
 }
 

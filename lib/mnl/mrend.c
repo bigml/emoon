@@ -85,7 +85,7 @@ NEOERR* mrend_rend()
     mrend_shadowmap_begin();
     e = hash_next(eh, (void**)&key);
     while (e) {
-        mrend_shadowmap_rend_static(e);
+        if (e->typeid == ENTITY_TYPE_STATIC) mrend_shadowmap_rend_static(e);
 
         e = hash_next(eh, (void**)&key);
     }
@@ -98,7 +98,7 @@ NEOERR* mrend_rend()
     key = NULL;
     e = hash_next(eh, (void**)&key);
     while (e) {
-        mrend_forwardrend_rend_static(e);
+        if (e->typeid == ENTITY_TYPE_STATIC) mrend_forwardrend_rend_static(e);
 
         e = hash_next(eh, (void**)&key);
     }

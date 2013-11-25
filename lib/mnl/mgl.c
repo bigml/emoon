@@ -6,8 +6,6 @@ void mgl_push_matrix()
     glPushMatrix();
 	glLoadIdentity();
     glOrtho(-1.0, 1.0, -1.0, 1.0, -1, 1);
-    //gluPerspective(60.0f, mrend_viewport_ratio(), 1.0f, 100.0f);
-    //glOrtho(0, mrend_viewport_width(), 0, mrend_viewport_height(), -1, 1);
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -28,7 +26,7 @@ void mgl_rend_texture(GLuint tex)
     glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0,  1.0,  0.0f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0,  1.0,  0.0f);
     glEnd();
-    
+
     glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
 
@@ -214,7 +212,7 @@ char* mgl_get_texture_parameters(GLuint objid)
     glBindTexture(GL_TEXTURE_2D, 0);
 
     snprintf(rstr, sizeof(rstr), "%dx%d, %s", width, height, mgl_format_str(format));
-    
+
     return rstr;
 }
 
@@ -231,6 +229,6 @@ char* mgl_get_renderbuffer_parameters(GLuint objid)
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     snprintf(rstr, sizeof(rstr), "%dx%d, %s", width, height, mgl_format_str(format));
-    
+
     return rstr;
 }
