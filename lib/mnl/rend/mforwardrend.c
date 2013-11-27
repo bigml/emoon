@@ -2,6 +2,22 @@
 
 #define MAX_LIGHTS 32
 
+#define SET_UNIFORM_MATRIX(name, val)                       \
+    uniid = glGetUniformLocation(prog, name);               \
+    if (uniid != -1) glUniformMatrix4fv(uniid, 1, 0, val);
+
+#define SET_UNIFORM_3F(name, v3)                            \
+    uniid = glGetUniformLocation(prog, name);               \
+    if (uniid != -1) glUniform3f(uniid, v3.x, v3.y, v3.z);
+
+#define SET_UNIFORM_1I(name, val)               \
+    uniid = glGetUniformLocation(prog, name);   \
+    if (uniid != -1) glUniform1i(uniid, val);
+
+#define SET_UNIFORM_1F(name, val)               \
+    uniid = glGetUniformLocation(prog, name);   \
+    if (uniid != -1) glUniform1f(uniid, val);
+
 typedef struct {
     GLuint fbo;
     GLuint rbo;
@@ -34,6 +50,61 @@ typedef struct {
 
 static ForwardEntry *m_render = NULL;
 
+static void mforward_set_mat_attrmap(MatEntry *me)
+{
+    GLuint prog = me->prog, uniid = -1;
+    char uniname[LEN_KEYWORLD];
+
+    if (!me) return;
+
+    m_render->tex_counter = 0;
+
+    for (int i = 0; i < me->items->num; i++) {
+        MatItem *item;
+
+        uListGet(me->items, i, (void**)&item);
+
+        snprintf(uniname, sizeof(uniname), "ATTR.%s", item->name);
+        uniid = glGetUniformLocation(prog, uniname);
+
+        if (uniid == -1) goto texture;
+
+        if (item->type == MAT_TYPE_INT)
+            glUniform1i(uniid, item->as.i);
+        if (item->type == MAT_TYPE_FLOAT)
+            glUniform1f(uniid, item->as.f);
+        if (item->type == MAT_TYPE_VEC2)
+            glUniform2f(uniid, item->as.v2.x, item->as.v2.y);
+        if (item->type == MAT_TYPE_VEC3)
+            glUniform3f(uniid, item->as.v3.x, item->as.v3.y, item->as.v3.z);
+        if (item->type == MAT_TYPE_VEC4)
+            glUniform4f(uniid, item->as.v4.x, item->as.v4.y,
+                        item->as.v4.z, item->as.v4.z);
+    texture:
+        if (item->type == MAT_TYPE_TEXTURE ||
+            item->type == MAT_TYPE_TEXTURE_3D) {
+            snprintf(uniname, sizeof(uniname), "MAP.%s", item->name);
+            uniid = glGetUniformLocation(prog, uniname);
+
+            if (uniid == -1) continue;
+
+            TexAsset *a = (TexAsset*)item->as.a;
+
+            glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
+            if (item->type == MAT_TYPE_TEXTURE) {
+                glBindTexture(GL_TEXTURE_2D, a->tex);
+                glEnable(GL_TEXTURE_2D);
+            } else {
+                glBindTexture(GL_TEXTURE_3D, a->tex);
+                glEnable(GL_TEXTURE_3D);
+            }
+            glUniform1i(uniid, m_render->tex_counter);
+            m_render->tex_counter++;
+        }
+        MGL_CHECK_ERROR();
+    }
+}
+
 static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
 {
     GLuint prog = me->prog, uniid;
@@ -41,22 +112,6 @@ static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
 
     glUseProgram(prog);
     MGL_CHECK_ERROR();
-
-#define SET_UNIFORM_MATRIX(name, val)                          \
-    uniid = glGetUniformLocation(prog, name);                  \
-    if (uniid != -1) glUniformMatrix4fv(uniid, 1, 0, val);
-
-#define SET_UNIFORM_3F(name, v3)                                 \
-    uniid = glGetUniformLocation(prog, name);                    \
-    if (uniid != -1) glUniform3f(uniid, v3.x, v3.y, v3.z);
-
-#define SET_UNIFORM_1I(name, val)                                 \
-    uniid = glGetUniformLocation(prog, name);                     \
-    if (uniid != -1) glUniform1i(uniid, val);
-
-#define SET_UNIFORM_1F(name, val)                                 \
-    uniid = glGetUniformLocation(prog, name);                     \
-    if (uniid != -1) glUniform1f(uniid, val);
 
     /*
      * vertex shader
@@ -85,40 +140,7 @@ static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
      */
     SET_UNIFORM_3F("CAMERA_POS", m_render->cam->base.position);
 
-    m_render->tex_counter = 0;
-
-    for (int i = 0; i < me->items->num; i++) {
-        MatItem *item;
-
-        uListGet(me->items, i, (void**)&item);
-
-        snprintf(uniname, sizeof(uniname), "ATTR.%s", item->name);
-        uniid = glGetUniformLocation(prog, uniname);
-
-        if (item->type == MAT_TYPE_INT)
-            glUniform1i(uniid, item->as.i);
-        if (item->type == MAT_TYPE_FLOAT)
-            glUniform1f(uniid, item->as.f);
-        if (item->type == MAT_TYPE_VEC2)
-            glUniform2f(uniid, item->as.v2.x, item->as.v2.y);
-        if (item->type == MAT_TYPE_VEC3)
-            glUniform3f(uniid, item->as.v3.x, item->as.v3.y, item->as.v3.z);
-        if (item->type == MAT_TYPE_VEC4)
-            glUniform4f(uniid, item->as.v4.x, item->as.v4.y,
-                        item->as.v4.z, item->as.v4.z);
-        if (item->type == MAT_TYPE_TEXTURE) {
-            snprintf(uniname, sizeof(uniname), "MAP.%s", item->name);
-            uniid = glGetUniformLocation(prog, uniname);
-
-            TexAsset *a = (TexAsset*)item->as.a;
-
-            glUniform1i(uniid, m_render->tex_counter);
-            glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
-            glBindTexture(GL_TEXTURE_2D, a->tex);
-            glEnable(GL_TEXTURE_2D);
-            m_render->tex_counter++;
-        }
-    }
+    mforward_set_mat_attrmap(me);
 
     SET_UNIFORM_1I("NUM_LIGHTS", m_render->num_lights);
 
@@ -153,6 +175,7 @@ static void mforward_disuse_mat_entry()
     while (m_render->tex_counter > 0) {
         m_render->tex_counter--;
         glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
+        glDisable(GL_TEXTURE_3D);
         glDisable(GL_TEXTURE_2D);
     }
 
@@ -229,9 +252,6 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
     m_render->tex_counter = 0;
     m_render->num_lights = 0;
 
-    err = masset_node_load(basedir, "shaders/forward/apost.mat", &m_render->postmat);
-    if (err != STATUS_OK) return nerr_pass(err);
-
     /*
      * texture object
      */
@@ -272,6 +292,22 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
     MGL_CHECK_FRAMEBUFFERSTATUS();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    /*
+     * post material
+     */
+    err = masset_node_load(basedir, "shaders/forward/apost.mat", &m_render->postmat);
+    if (err != STATUS_OK) return nerr_pass(err);
+
+    MatAsset *m = (MatAsset*)m_render->postmat;
+    MatEntry *me;
+
+    err = uListGet(m->entries, 0, (void**)&me);
+    if (err != STATUS_OK) return nerr_pass(err);
+
+    mast_mat_add_item_int(me, "width",  mrend_viewport_width());
+    mast_mat_add_item_int(me, "height", mrend_viewport_height());
+    mast_mat_add_item_texture(me, "diffuse", mast_texture_new(m_render->tex));
 
     return STATUS_OK;
 }
@@ -381,22 +417,27 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
 void mrend_forwardrend_end()
 {
     MatAsset *m = (MatAsset*)m_render->postmat;
-    MatEntry *e;
+    MatEntry *me;
     NEOERR *err;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    err = uListGet(m->entries, 0, (void**)&e);
+    err = uListGet(m->entries, 0, (void**)&me);
     RETURN_NOK(err);
 
-    //glUseProgram(e->prog);
-    glUseProgram(0);
+    glUseProgram(me->prog);
     MGL_CHECK_ERROR();
 
+    mforward_set_mat_attrmap(me);
+
     mgl_push_matrix();
-    mgl_rend_texture(m_render->tex);
-    mgl_pop_matrix();
+
+    mgl_rend_plane();
     MGL_CHECK_ERROR();
+
+    mgl_pop_matrix();
+
+    mforward_disuse_mat_entry();
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);

@@ -12,25 +12,14 @@ void mgl_push_matrix()
     glLoadIdentity();
 }
 
-void mgl_rend_texture(GLuint tex)
+void mgl_rend_plane()
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glEnable(GL_TEXTURE_2D);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0, -1.0,  0.0f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0, -1.0,  0.0f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0,  1.0,  0.0f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0,  1.0,  0.0f);
     glEnd();
-
-    glActiveTexture(GL_TEXTURE0);
-    glDisable(GL_TEXTURE_2D);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void mgl_pop_matrix()

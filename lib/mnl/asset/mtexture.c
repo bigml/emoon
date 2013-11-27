@@ -5,35 +5,35 @@
 
 
 /* DDS_header.dwFlags */
-#define DDSD_CAPS                   0x00000001 
-#define DDSD_HEIGHT                 0x00000002 
-#define DDSD_WIDTH                  0x00000004 
-#define DDSD_PITCH                  0x00000008 
-#define DDSD_PIXELFORMAT            0x00001000 
-#define DDSD_MIPMAPCOUNT            0x00020000 
-#define DDSD_LINEARSIZE             0x00080000 
-#define DDSD_DEPTH                  0x00800000 
+#define DDSD_CAPS                   0x00000001
+#define DDSD_HEIGHT                 0x00000002
+#define DDSD_WIDTH                  0x00000004
+#define DDSD_PITCH                  0x00000008
+#define DDSD_PIXELFORMAT            0x00001000
+#define DDSD_MIPMAPCOUNT            0x00020000
+#define DDSD_LINEARSIZE             0x00080000
+#define DDSD_DEPTH                  0x00800000
 
 /* DDS_header.sPixelFormat.dwFlags */
-#define DDPF_ALPHAPIXELS            0x00000001 
-#define DDPF_FOURCC                 0x00000004 
-#define DDPF_INDEXED                0x00000020 
-#define DDPF_RGB                    0x00000040 
+#define DDPF_ALPHAPIXELS            0x00000001
+#define DDPF_FOURCC                 0x00000004
+#define DDPF_INDEXED                0x00000020
+#define DDPF_RGB                    0x00000040
 
 /* DDS_header.sCaps.dwCaps1 */
-#define DDSCAPS_COMPLEX             0x00000008 
-#define DDSCAPS_TEXTURE             0x00001000 
-#define DDSCAPS_MIPMAP              0x00400000 
+#define DDSCAPS_COMPLEX             0x00000008
+#define DDSCAPS_TEXTURE             0x00001000
+#define DDSCAPS_MIPMAP              0x00400000
 
 /* DDS_header.sCaps.dwCaps2 */
-#define DDSCAPS2_CUBEMAP            0x00000200 
-#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400 
-#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800 
-#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000 
-#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000 
-#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000 
-#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
-#define DDSCAPS2_VOLUME             0x00200000 
+#define DDSCAPS2_CUBEMAP            0x00000200
+#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400
+#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800
+#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000
+#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000
+#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000
+#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000
+#define DDSCAPS2_VOLUME             0x00200000
 
 #define D3DFMT_DXT1     0x31545844    /* DXT1 compression texture format */
 #define D3DFMT_DXT2     0x32545844    /* DXT2 compression texture format */
@@ -128,7 +128,7 @@ typedef struct {
         unsigned int    dwDDSX;
         unsigned int    dwReserved;
     } sCaps;
-  
+
     unsigned int dwReserved2;
 } DDS_header ;
 
@@ -142,7 +142,7 @@ typedef struct {
     GLenum internalFormat;
     GLenum externalFormat;
     GLenum type;
-  
+
 } DdsLoadInfo;
 
 static bool is_power_of_two(unsigned int x)
@@ -158,7 +158,7 @@ static void mtex_set_filtering_anisotropic(GLuint t)
   glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
 
   glBindTexture(GL_TEXTURE_2D, t);
-  
+
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max);
@@ -169,8 +169,6 @@ static TexAsset* mtex_node_new()
     TexAsset *tnode = calloc(1, sizeof(TexAsset));
     if (!tnode) return NULL;
 
-    glGenTextures(1, &tnode->tex);
-
     return tnode;
 }
 
@@ -178,7 +176,7 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
 {
     char fname[PATH_MAX], *buf, *pos;
     NEOERR *err;
-    
+
     DdsLoadInfo loadInfoDXT1 = {
         1, 0, 0, 4, 8, GL_COMPRESSED_RGBA_S3TC_DXT1
     };
@@ -209,7 +207,6 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
 
     TexAsset *tnode = mtex_node_new();
     if (!tnode) return nerr_raise(NERR_NOMEM, "alloc texture");
-    glBindTexture(GL_TEXTURE_2D, tnode->tex);
 
     DDS_header hdr;
     int x = 0;
@@ -220,26 +217,29 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
     err = ne_load_file_len(fname, &buf, &totallen);
     if (err != STATUS_OK) return nerr_pass(err);
 
+    glGenTextures(1, &tnode->tex);
+    glBindTexture(GL_TEXTURE_2D, tnode->tex);
+
     pos = buf;
     memcpy(&hdr, buf, sizeof(hdr));
     pos += sizeof(hdr);
     if (pos - buf > totallen) return nerr_raise(NERR_ASSERT, "file too short");
-  
+
     if (hdr.dwMagic != DDS_MAGIC || hdr.dwSize != 124 ||
         !(hdr.dwFlags & DDSD_PIXELFORMAT) || !(hdr.dwFlags & DDSD_CAPS) )
         return nerr_raise(NERR_ASSERT, "%s Does not appear to be a .dds file", fname);
 
     x = hdr.dwWidth;
     y = hdr.dwHeight;
-  
+
     if (!is_power_of_two(x)) {
         mtc_warn("Texture %s with is %i pixels which is not a power of two!", fname, x);
     }
-  
+
     if (!is_power_of_two(y)) {
         mtc_warn("Texture %s height is %i pixels which is not a power of two!", fname, y);
     }
-  
+
     DdsLoadInfo* li = &loadInfoDXT1;
 
     if (PF_IS_DXT1(hdr.sPixelFormat)) {
@@ -261,13 +261,13 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
     } else {
         return nerr_raise(NERR_ASSERT, "%s: Unknown DDS File format type.", fname);
     }
-  
+
     glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
     mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
-  
+
     int ix, zz;
     GLenum cFormat, format;
-  
+
     if (li->compressed) {
         size_t size = max(li->divSize, x) / li->divSize *
                       max(li->divSize, y) / li->divSize * li->blockBytes;
@@ -275,15 +275,15 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
         if (!data ) {
             return nerr_raise(NERR_ASSERT, "%s: not contain any data.", fname);
         }
-    
+
         cFormat = li->internalFormat;
         format = li->internalFormat;
-    
+
         for( ix = 0; ix < mipMapCount; ++ix ) {
             memcpy(data, pos, size);
             pos += size;
             if (pos - buf > totallen) return nerr_raise(NERR_ASSERT, "file too short");
-            
+
             glCompressedTexImage2D(GL_TEXTURE_2D, ix, li->internalFormat,
                                    x, y, 0, size, data);
             x = (x+1)>>1;
@@ -309,17 +309,17 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
             memcpy(data, pos, size);
             pos += size;
             if (pos - buf > totallen) return nerr_raise(NERR_ASSERT, "file too short");
-      
+
             for (zz = 0; zz < size; ++zz) {
                 unpacked[zz] = palette[(short)data[zz]];
             }
-      
+
             glPixelStorei(GL_UNPACK_ROW_LENGTH, y);
             glTexImage2D(GL_TEXTURE_2D, ix, li->internalFormat,
                          x, y, 0, li->externalFormat, li->type, unpacked);
             x = (x+1) >> 1;
             y = (y+1) >> 1;
-      
+
             size = x * y * li->blockBytes;
         }
         free(data);
@@ -328,7 +328,7 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
         if (li->swap ) {
             glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_TRUE);
         }
-    
+
         size_t size = x * y * li->blockBytes;
         format = li->externalFormat;
         cFormat = li->internalFormat;
@@ -342,7 +342,7 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
             glPixelStorei(GL_UNPACK_ROW_LENGTH, y);
             glTexImage2D(GL_TEXTURE_2D, ix, li->internalFormat,
                          x, y, 0, li->externalFormat, li->type, data);
-      
+
             x = (x+1) >> 1;
             y = (y+1) >> 1;
             size = x * y * li->blockBytes;
@@ -350,10 +350,12 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
         free(data);
         glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
     }
-  
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount-1);
-  
+
     mtex_set_filtering_anisotropic(tnode->tex);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     SAFE_FREE(buf);
 
@@ -364,9 +366,63 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
 
 void mast_dds_unload(void *p)
 {
+    /* TODO unload */
     if (!p) return;
 }
 
+NEOERR* mast_lut_load(char *dir, char *name, RendAsset **a)
+{
+    char fname[PATH_MAX], *buf;
+    NEOERR *err;
+
+    if (dir) snprintf(fname, sizeof(fname), "%s%s", dir, name);
+    else strncpy(fname, name, sizeof(fname));
+
+    TexAsset *tnode = mtex_node_new();
+    if (!tnode) return nerr_raise(NERR_NOMEM, "alloc texture");
+
+    err = ne_load_file(fname, &buf);
+    if (err != STATUS_OK) return nerr_pass(err);
+
+    int head = sizeof("CORANGE-LUT") - 1;
+    int lut_size = (unsigned char)buf[head] | (unsigned char)buf[head+1];
+    int offset = head + 3;
+
+    glEnable(GL_TEXTURE_3D);
+    glGenTextures(1, &tnode->tex);
+    glBindTexture(GL_TEXTURE_3D, tnode->tex);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, lut_size, lut_size, lut_size,
+                 0, GL_RGB, GL_UNSIGNED_BYTE, buf + offset);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT);
+    glDisable(GL_TEXTURE_3D);
+    glBindTexture(GL_TEXTURE_3D, 0);
+
+    SAFE_FREE(buf);
+
+    *a = (RendAsset*)tnode;
+
+    return STATUS_OK;
+}
+
+void mast_lut_unload(void *p)
+{
+    if (!p) return;
+}
+
+
+TexAsset* mast_texture_new(GLuint texid)
+{
+    if (!glIsTexture(texid)) return NULL;
+
+    TexAsset *tnode = mtex_node_new();
+    tnode->tex = texid;
+
+    return tnode;
+}
 
 NEOERR* mast_texture_load_raw(char *fname, GLuint *texid)
 {
@@ -380,7 +436,7 @@ NEOERR* mast_texture_load_raw(char *fname, GLuint *texid)
 
     file = fopen(fname, "rb");
     if (!file) return nerr_raise(NERR_IO, "open %s failure", fname);
-    
+
     width = 1024, height = 512; len = width * height *3;
     data = calloc(1, len);
     fread(data, len, 1, file);

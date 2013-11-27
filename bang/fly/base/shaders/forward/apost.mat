@@ -1,2 +1,4 @@
 shader vertex = shaders/forward/apost.vs
 shader fragment = shaders/forward/apost.fs
+texture vignetting = resources/vignetting.dds
+texture3d lut = resources/identity.lut

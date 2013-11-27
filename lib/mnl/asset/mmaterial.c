@@ -10,6 +10,7 @@ static int mat_get_type(char *type)
     if (!strcmp(type, "vec3")) return MAT_TYPE_VEC3;
     if (!strcmp(type, "vec4")) return MAT_TYPE_VEC4;
     if (!strcmp(type, "shader")) return MAT_TYPE_SHADER;
+    if (!strcmp(type, "texture3d")) return MAT_TYPE_TEXTURE_3D;
     if (!strcmp(type, "texture")) return MAT_TYPE_TEXTURE;
 
     return -1;
@@ -27,7 +28,7 @@ static MatItem* mat_item_new(char *dir, char *type, char *name, char *value)
 
     item->name = strdup(name);
     item->type = mat_get_type(type);
-    
+
     switch (item->type) {
     case MAT_TYPE_INT:
         item->as.i = atoi(value);
@@ -51,6 +52,7 @@ static MatItem* mat_item_new(char *dir, char *type, char *name, char *value)
         break;
     case MAT_TYPE_SHADER:
     case MAT_TYPE_TEXTURE:
+    case MAT_TYPE_TEXTURE_3D:
         err = masset_node_load(dir, value, &item->as.a);
         RETURN_V_NOK(err, NULL);
         break;
@@ -58,7 +60,7 @@ static MatItem* mat_item_new(char *dir, char *type, char *name, char *value)
         mtc_dbg("unknown type %s", type);
         return NULL;
     }
-    
+
     return item;
 }
 
@@ -91,7 +93,7 @@ static void mat_entry_free(void *p)
 static NEOERR* mat_generate_program(MatEntry *me)
 {
     MatItem *item;
-    
+
     MCS_NOT_NULLA(me);
 
     me->prog = mast_shader_prog_new();
@@ -117,12 +119,136 @@ static MatAsset* mat_node_new()
     return mat;
 }
 
+NEOERR* mast_mat_add_item_int(MatEntry *me, char *name, int val)
+{
+    MatItem *item;
+
+    MCS_NOT_NULLB(me, name);
+
+    item = calloc(1, sizeof(MatItem));
+    if (!item) return nerr_raise(NERR_NOMEM, "add item");
+
+    item->name = strdup(name);
+    item->type = MAT_TYPE_INT;
+    item->as.i = val;
+
+    uListAppend(me->items, item);
+
+    return STATUS_OK;
+}
+
+NEOERR* mast_mat_add_item_float(MatEntry *me, char *name, float val)
+{
+    MatItem *item;
+
+    MCS_NOT_NULLB(me, name);
+
+    item = calloc(1, sizeof(MatItem));
+    if (!item) return nerr_raise(NERR_NOMEM, "add item");
+
+    item->name = strdup(name);
+    item->type = MAT_TYPE_FLOAT;
+    item->as.f = val;
+
+    uListAppend(me->items, item);
+
+    return STATUS_OK;
+}
+
+NEOERR* mast_mat_add_item_vec2(MatEntry *me, char *name, vec2 val)
+{
+    MatItem *item;
+
+    MCS_NOT_NULLB(me, name);
+
+    item = calloc(1, sizeof(MatItem));
+    if (!item) return nerr_raise(NERR_NOMEM, "add item");
+
+    item->name = strdup(name);
+    item->type = MAT_TYPE_VEC2;
+    item->as.v2 = val;
+
+    uListAppend(me->items, item);
+
+    return STATUS_OK;
+}
+
+NEOERR* mast_mat_add_item_vec3(MatEntry *me, char *name, vec3 val)
+{
+    MatItem *item;
+
+    MCS_NOT_NULLB(me, name);
+
+    item = calloc(1, sizeof(MatItem));
+    if (!item) return nerr_raise(NERR_NOMEM, "add item");
+
+    item->name = strdup(name);
+    item->type = MAT_TYPE_VEC3;
+    item->as.v3 = val;
+
+    uListAppend(me->items, item);
+
+    return STATUS_OK;
+}
+
+NEOERR* mast_mat_add_item_vec4(MatEntry *me, char *name, vec4 val)
+{
+    MatItem *item;
+
+    MCS_NOT_NULLB(me, name);
+
+    item = calloc(1, sizeof(MatItem));
+    if (!item) return nerr_raise(NERR_NOMEM, "add item");
+
+    item->name = strdup(name);
+    item->type = MAT_TYPE_VEC4;
+    item->as.v4 = val;
+
+    uListAppend(me->items, item);
+
+    return STATUS_OK;
+}
+
+NEOERR* mast_mat_add_item_asset(MatEntry *me, char *name, int type, RendAsset *val)
+{
+    MatItem *item;
+
+    MCS_NOT_NULLC(me, name, val);
+
+    item = calloc(1, sizeof(MatItem));
+    if (!item) return nerr_raise(NERR_NOMEM, "add item");
+
+    item->name = strdup(name);
+    item->type = type;
+    item->as.a = val;
+
+    uListAppend(me->items, item);
+
+    return STATUS_OK;
+}
+
+NEOERR* mast_mat_add_item_shader(MatEntry *me, char *name, ShaderAsset *val)
+{
+    return nerr_pass(mast_mat_add_item_asset(me, name, MAT_TYPE_SHADER, (RendAsset*)val));
+}
+
+NEOERR* mast_mat_add_item_texture(MatEntry *me, char *name, TexAsset *val)
+{
+    return nerr_pass(mast_mat_add_item_asset(me, name, MAT_TYPE_TEXTURE, (RendAsset*)val));
+}
+
+NEOERR* mast_mat_add_item_texture3d(MatEntry *me, char *name, TexAsset *val)
+{
+    return nerr_pass(mast_mat_add_item_asset(me, name,
+                                             MAT_TYPE_TEXTURE_3D, (RendAsset*)val));
+}
+
 NEOERR* mast_mat_load(char *dir, char *name, RendAsset **a)
 {
     char fname[PATH_MAX], *buf, *line;
     ULIST *lines;
     NEOERR *err;
-    
+
     if (dir) snprintf(fname, sizeof(fname), "%s%s", dir, name);
     else strncpy(fname, name, sizeof(fname));
 
@@ -151,7 +277,7 @@ NEOERR* mast_mat_load(char *dir, char *name, RendAsset **a)
 
             err = mat_generate_program(me);
             CONTINUE_NOK(err);
-            
+
             uListAppend(mat->entries, me);
             me = mat_entry_new();
 
@@ -173,7 +299,7 @@ NEOERR* mast_mat_load(char *dir, char *name, RendAsset **a)
     SAFE_FREE(buf);
 
     *a = (RendAsset*)mat;
-    
+
     return STATUS_OK;
 }
 
