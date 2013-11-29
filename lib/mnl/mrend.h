@@ -14,7 +14,7 @@ typedef struct {
     int height;
 } RendEntry;
 
-NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags, char *basedir);
+NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags);
 NEOERR* mrend_update();
 NEOERR* mrend_rend();
 void    mrend_present();

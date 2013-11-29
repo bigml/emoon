@@ -135,8 +135,24 @@
     } while (0)
 
 /*
- * OpenGL related 
+ * OpenGL related
  */
+#define SET_UNIFORM_MATRIX(name, val)                       \
+    uniid = glGetUniformLocation(prog, name);               \
+    if (uniid != -1) glUniformMatrix4fv(uniid, 1, 0, val);
+
+#define SET_UNIFORM_3F(name, v3)                            \
+    uniid = glGetUniformLocation(prog, name);               \
+    if (uniid != -1) glUniform3f(uniid, v3.x, v3.y, v3.z);
+
+#define SET_UNIFORM_1I(name, val)               \
+    uniid = glGetUniformLocation(prog, name);   \
+    if (uniid != -1) glUniform1i(uniid, val);
+
+#define SET_UNIFORM_1F(name, val)               \
+    uniid = glGetUniformLocation(prog, name);   \
+    if (uniid != -1) glUniform1f(uniid, val);
+
 #define MGL_CHECK_ERROR()                                          \
     do {                                                           \
         GLenum _glerror = glGetError();                            \
@@ -152,6 +168,7 @@
             mtc_err("Framebuffer Error: %s", mgl_error_str_framebuffer(_glerror)); \
         }                                                               \
     } while (0)
+
 
 /*
  * other stuff

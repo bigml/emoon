@@ -2,22 +2,6 @@
 
 #define MAX_LIGHTS 32
 
-#define SET_UNIFORM_MATRIX(name, val)                       \
-    uniid = glGetUniformLocation(prog, name);               \
-    if (uniid != -1) glUniformMatrix4fv(uniid, 1, 0, val);
-
-#define SET_UNIFORM_3F(name, v3)                            \
-    uniid = glGetUniformLocation(prog, name);               \
-    if (uniid != -1) glUniform3f(uniid, v3.x, v3.y, v3.z);
-
-#define SET_UNIFORM_1I(name, val)               \
-    uniid = glGetUniformLocation(prog, name);   \
-    if (uniid != -1) glUniform1i(uniid, val);
-
-#define SET_UNIFORM_1F(name, val)               \
-    uniid = glGetUniformLocation(prog, name);   \
-    if (uniid != -1) glUniform1f(uniid, val);
-
 typedef struct {
     GLuint fbo;
     GLuint rbo;
@@ -25,6 +9,7 @@ typedef struct {
 
     CameraEntity *cam;
     LightEntity *shadow_light;
+    GLuint shadow_tex;
 
     float wmatrix[16];          /* world_matrxi */
     float vmatrix[16];          /* view_matrix */
@@ -102,6 +87,15 @@ static void mforward_set_mat_attrmap(MatEntry *me)
             m_render->tex_counter++;
         }
         MGL_CHECK_ERROR();
+    }
+
+    uniid = glGetUniformLocation(prog, "MAP.shadow");
+    if (m_render->shadow_tex && uniid != -1) {
+        glUniform1i(uniid, m_render->tex_counter);
+        glActiveTexture(GL_TEXTURE0 + m_render->tex_counter);
+        glBindTexture(GL_TEXTURE_2D, m_render->shadow_tex);
+        glEnable(GL_TEXTURE_2D);
+        m_render->tex_counter++;
     }
 }
 
@@ -237,7 +231,7 @@ static void mforward_unbind_attributes()
     DISABLE_VERTEX_ATTR(m_render->attr.color);
 }
 
-NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
+NEOERR* mrend_forwardrend_init(char *basedir)
 {
     NEOERR *err;
 
@@ -246,8 +240,12 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
     m_render = calloc(1, sizeof(ForwardEntry));
     if (!m_render) return nerr_raise(NERR_NOMEM, "alloc forward rend");
 
+    m_render->shadow_tex = 0;
     m_render->tex_counter = 0;
     m_render->num_lights = 0;
+
+    int width = mrend_viewport_width();
+    int height = mrend_viewport_height();
 
     /*
      * texture object
@@ -259,17 +257,17 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r->width, r->height, 0,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     MGL_CHECK_ERROR();
 
     /*
-     * render buffer object to store depth info
+     * render buffer object to store middle depth info
      */
     glGenRenderbuffers(1, &m_render->rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, m_render->rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, r->width, r->height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     MGL_CHECK_ERROR();
 
@@ -293,7 +291,7 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
     /*
      * post material
      */
-    err = masset_node_load(basedir, "shaders/forward/apost.mat", &m_render->postmat);
+    err = masset_node_load(basedir, "shaders/forward/post.mat", &m_render->postmat);
     if (err != STATUS_OK) return nerr_pass(err);
 
     MatAsset *m = (MatAsset*)m_render->postmat;
@@ -317,6 +315,11 @@ void mrend_forwardrend_set_camera(CameraEntity *c)
 void mrend_forwardrend_set_shadow_light(LightEntity *e)
 {
     m_render->shadow_light = e;
+}
+
+void mrend_forwardrend_set_shadow_texture(GLuint texid)
+{
+    m_render->shadow_tex = texid;
 }
 
 void mrend_forwardrend_add_light(LightEntity *e)

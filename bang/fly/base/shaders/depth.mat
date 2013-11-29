@@ -1,2 +1,2 @@
-shader vertex = $CORANGE/shaders/depth.vs
-shader fragment = $CORANGE/shaders/depth.fs
+shader vertex = shaders/depth.vs
+shader fragment = shaders/depth.fs

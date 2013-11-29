@@ -59,6 +59,9 @@ static NEOERR* mlight_new(HDF *enode, char *dir, RendEntity **pe)
     e->base.cast_shadows = true;
     e->base.position = vec3_from_string(hdf_get_value(enode, "position", "0 0 0"));
 
+#define SET_CONFIG_1I(val, key)                 \
+    tmps = hdf_get_value(enode, key, NULL);     \
+    if (tmps) val = atoi(tmps);
 #define SET_CONFIG_1F(val, key)                 \
     tmps = hdf_get_value(enode, key, NULL);     \
     if (tmps) val = atof(tmps);
@@ -72,6 +75,9 @@ static NEOERR* mlight_new(HDF *enode, char *dir, RendEntity **pe)
     SET_CONFIG_3F(e->diffuse,  "diffuse");
     SET_CONFIG_3F(e->specular, "specular");
     SET_CONFIG_3F(e->ambient,  "ambient");
+    SET_CONFIG_1I(e->shadow_map_width, "shadow_map_width");
+    SET_CONFIG_1I(e->shadow_map_height, "shadow_map_height");
+    SET_CONFIG_3F(e->shadow_color, "shadow_color");
 
     *pe = (RendEntity*)e;
 

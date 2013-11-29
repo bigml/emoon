@@ -2,7 +2,7 @@
 
 static RendEntry *m_render = NULL;
 
-NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags, char *basedir)
+NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags)
 {
     NEOERR *err;
 
@@ -46,12 +46,6 @@ NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags, char *bas
     if (err != STATUS_OK) return nerr_pass(err);
 
     err = mentity_init();
-    if (err != STATUS_OK) return nerr_pass(err);
-
-    err = mrend_shadowmap_init(basedir, m_render);
-    if (err != STATUS_OK) return nerr_pass(err);
-
-    err = mrend_forwardrend_init(basedir, m_render);
     if (err != STATUS_OK) return nerr_pass(err);
 
     return STATUS_OK;

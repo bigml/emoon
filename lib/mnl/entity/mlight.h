@@ -38,10 +38,10 @@ typedef struct {
 } LightEntity;
 
 enum {
-    LIGHT_TYPE_POINT = 0,
-    LIGHT_TYPE_DIRECTIONAL,
+    LIGHT_TYPE_POINT = 0,       /* shine out from a point in all directions.  */
+    LIGHT_TYPE_DIRECTIONAL,     /* affect all surfaces of objects in your scene */
     LIGHT_TYPE_SUN,
-    LIGHT_TYPE_SPOT
+    LIGHT_TYPE_SPOT             /* only shine in one direction, in a cone */
 };
 
 EntityDriver light_entity_driver;

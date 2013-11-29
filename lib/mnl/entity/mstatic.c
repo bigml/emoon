@@ -47,6 +47,14 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     e->rotation = vec4_from_string(hdf_get_value(enode, "rotation", "0 0 0 1"));
     e->scale = vec3_from_string(hdf_get_value(enode, "scale", "1 1 1"));
 
+    MatAsset *m = (MatAsset*)e->base.material;
+    MatEntry *me;
+    for (int i = 0; i < m->entries->num; i++) {
+        uListGet(m->entries, i, (void**)&me);
+        if (e->base.receive_shadows) mast_mat_add_item_int(me, "receive_shadows", 1);
+        else mast_mat_add_item_int(me, "receive_shadows", 0);
+    }
+
     *pe = (RendEntity*)e;
 
     return STATUS_OK;

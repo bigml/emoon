@@ -11,7 +11,7 @@ HASH *g_datah = NULL;
 int main(int argc, char **argv)
 {
     NEOERR *err;
-    
+
     msys_makesure_coredump();
 
     err = mcfg_parse_file(APPCONFIG, &g_cfg);
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
     err = lerr_init();
     DIE_NOK(err);
-    
+
     mtc_init(hdf_get_value(g_cfg, PRE_CONFIG".trace_file", "viki"),
              hdf_get_int_value(g_cfg, PRE_CONFIG".trace_level", TC_DEFAULT_LEVEL));
 
@@ -28,8 +28,7 @@ int main(int argc, char **argv)
                      hdf_get_int_value(g_cfg, "Window.y", 0),
                      hdf_get_int_value(g_cfg, "Window.w", 100),
                      hdf_get_int_value(g_cfg, "Window.h", 100),
-                     hdf_get_int_value(g_cfg, "Window.flags", 1),
-                     PATH_FLY"base/");
+                     hdf_get_int_value(g_cfg, "Window.flags", 1));
     DIE_NOK(err);
 
     err = lrend_init();
