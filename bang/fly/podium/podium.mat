@@ -5,4 +5,4 @@ texture bump = podium/podium_nm.dds
 texture spec = podium/podium_s.dds
 texture env = podium/podium_env.dds
 float glossiness = 20
-float specular_Level = 0.75
+float specular_level = 0.01

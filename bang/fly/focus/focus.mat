@@ -1,0 +1,5 @@
+shader vertex = base/shaders/forward/astatic.vs
+shader fragment = base/shaders/forward/astatic.fs
+texture diffuse = focus/focus.jpg
+float glossiness = 22
+float specular_Level = 1.75

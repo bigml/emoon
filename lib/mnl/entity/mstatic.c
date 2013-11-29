@@ -44,7 +44,7 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     err = masset_node_load(dir, mat, &e->base.material);
     if (err != STATUS_OK) goto errorexit;
 
-    e->rotation = quaternion_id();
+    e->rotation = vec4_from_string(hdf_get_value(enode, "rotation", "0 0 0 1"));
     e->scale = vec3_from_string(hdf_get_value(enode, "scale", "1 1 1"));
 
     *pe = (RendEntity*)e;

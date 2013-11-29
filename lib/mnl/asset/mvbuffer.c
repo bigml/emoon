@@ -22,6 +22,8 @@ static VbufferSurface* mvb_surface_new(mesh *m)
     float *vb_data = malloc(sizeof(float) * m->num_verts * 18);
 
     for(int i = 0; i < m->num_verts; i++) {
+        //vertex_print(m->verticies[i]);
+        //printf("\n");
         vec3 pos = m->verticies[i].position;
         vec3 norm = m->verticies[i].normal;
         vec3 tang = m->verticies[i].tangent;
@@ -89,7 +91,7 @@ static  void mvb_add_mesh(VbufferAsset *v, mesh *m)
 }
 
 static void mvb_add_group(model *omode, mesh *amesh, int vert_index,
-                   int_list *tlist, vertex_list *vlist)
+                          int_list *tlist, vertex_list *vlist)
 {
     amesh->num_verts = vert_index;
     amesh->num_triangles = tlist->num_items / 3;
@@ -149,6 +151,8 @@ NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
 
     MCS_NOT_NULLB(omode, v);
 
+    mfmt_obj_reset_local();
+
     MLIST_ITERATE(lines, line) {
         line = neos_strip(line);
 
@@ -177,6 +181,8 @@ NEOERR* mast_vb_obj_load(char *dir, char *name, RendAsset **a)
 
     uListDestroy(&lines, 0);
     SAFE_FREE(buf);
+
+    if (!amesh) return nerr_raise(NERR_ASSERT, "%s have no groups", fname);
 
     mvb_add_group(omode, amesh, vert_index, tlist, vlist);
 

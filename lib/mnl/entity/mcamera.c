@@ -71,3 +71,47 @@ mat4 mentity_camera_proj_matrix(CameraEntity *c, float aspect_ratio)
 {
     return mat4_perspective(c->fov, c->near_clip, c->far_clip, aspect_ratio);
 }
+
+void mentity_camera_control_orbit(CameraEntity *c, SDL_Event e)
+{
+    float a1 = 0;
+    float a2 = 0;
+    int x, y, dx, dy;
+    vec3 axis;
+    Uint8 state;
+
+    vec3 translation = c->target;
+    c->base.position = vec3_sub(c->base.position, translation);
+    c->target = vec3_sub(c->target, translation);
+
+    state = SDL_GetMouseState(&x, &y);
+
+    switch (e.type) {
+    case SDL_MOUSEMOTION:
+        state = SDL_GetMouseState(&x, &y);
+        SDL_GetRelativeMouseState(&dx, &dy);
+        if (state & SDL_BUTTON_LMASK) {
+            a1 = dx * -0.005;
+            a2 = dy * 0.005;
+            c->base.position = mat3_mul_vec3(mat3_rotation_y( a1 ), c->base.position );
+            axis = vec3_normalize(vec3_cross(vec3_sub(c->base.position, c->target),
+                                             vec3_new(0,1,0)));
+            c->base.position = mat3_mul_vec3(mat3_rotation_axis_angle(axis, a2),
+                                             c->base.position);
+        }
+        break;
+    case SDL_MOUSEWHEEL:
+        if (e.wheel.y > 0) {
+            c->base.position = vec3_sub(c->base.position,
+                                        vec3_normalize(c->base.position));
+        }
+        if (e.wheel.y < 0) {
+            c->base.position = vec3_add(c->base.position,
+                                        vec3_normalize(c->base.position));
+        }
+        break;
+    }
+
+    c->base.position = vec3_add(c->base.position, translation);
+    c->target = vec3_add(c->target, translation);
+}

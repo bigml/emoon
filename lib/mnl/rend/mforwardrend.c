@@ -243,9 +243,6 @@ NEOERR* mrend_forwardrend_init(char *basedir, RendEntry *r)
 
     if (m_render) return STATUS_OK;
 
-    glClearColor(0.2, 0.2, 0.2, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     m_render = calloc(1, sizeof(ForwardEntry));
     if (!m_render) return nerr_raise(NERR_NOMEM, "alloc forward rend");
 
@@ -340,7 +337,6 @@ void mrend_forwardrend_begin()
     if (!m_render) return;
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
-
     glClearColor(0.8, 0.8, 0.8, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -379,8 +375,9 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
 {
     StaticEntity *e;
     VbufferAsset *r;
-    VbufferSurface *s;
     MatAsset *m;
+
+    VbufferSurface *s;
     MatEntry *me;
 
     if (!ep) return;
@@ -390,6 +387,8 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
     m = (MatAsset*)e->base.material;
 
     if (!r || !m) return;
+
+    //mtc_dbg("rend static object %s", e->base.name);
 
     mat4_to_array(mat4_world(e->base.position, e->scale, e->rotation), m_render->wmatrix);
 
@@ -421,6 +420,8 @@ void mrend_forwardrend_end()
     NEOERR *err;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.2, 0.2, 0.2, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     err = uListGet(m->entries, 0, (void**)&me);
     RETURN_NOK(err);

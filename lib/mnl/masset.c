@@ -77,6 +77,13 @@ NEOERR* masset_init()
     uListAppend(asset_drivers, masset_driver_new("dds", mast_dds_load, mast_dds_unload));
     uListAppend(asset_drivers, masset_driver_new("lut", mast_lut_load, mast_lut_unload));
 
+    uListAppend(asset_drivers, masset_driver_new("tga", mast_tex_sdl_load, mast_tex_sdl_unload));
+    uListAppend(asset_drivers, masset_driver_new("bmp", mast_tex_sdl_load, mast_tex_sdl_unload));
+    uListAppend(asset_drivers, masset_driver_new("gif", mast_tex_sdl_load, mast_tex_sdl_unload));
+    uListAppend(asset_drivers, masset_driver_new("jpg", mast_tex_sdl_load, mast_tex_sdl_unload));
+    uListAppend(asset_drivers, masset_driver_new("png", mast_tex_sdl_load, mast_tex_sdl_unload));
+    uListAppend(asset_drivers, masset_driver_new("tif", mast_tex_sdl_load, mast_tex_sdl_unload));
+
     return STATUS_OK;
 }
 
@@ -105,6 +112,9 @@ NEOERR* masset_node_load(char *dir, char *name, RendAsset **pa)
 
     *pa = NULL;
 
+    asset = hash_lookup(mh, name);
+    if (asset) goto done;
+
     char *p = strrchr(name, '.');
     if (p) p = p + 1;
 
@@ -128,6 +138,7 @@ NEOERR* masset_node_load(char *dir, char *name, RendAsset **pa)
     hash_remove(mh, name);
     hash_insert(mh, strdup(name), asset);
 
+done:
     *pa = asset;
 
     return STATUS_OK;

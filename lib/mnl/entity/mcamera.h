@@ -19,5 +19,7 @@ EntityDriver camera_entity_driver;
 mat4 mentity_camera_view_matrix(CameraEntity *c);
 mat4 mentity_camera_proj_matrix(CameraEntity *c, float aspect_ratio);
 
+void mentity_camera_control_orbit(CameraEntity *c, SDL_Event e);
+
 __END_DECLS
 #endif    /* __MCAMERA_H__ */

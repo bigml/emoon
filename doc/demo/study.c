@@ -12,7 +12,7 @@ SDL_Texture* create_texture(char *file)
 {
     char fname[1024];
     snprintf(fname, sizeof(fname), "studyres/%s", file);
-    
+
     SDL_Texture *tex = IMG_LoadTexture(m_render, fname);
 	if (!tex) {
         mtc_err("SDL_LoadBMP Error: %s", SDL_GetError());
@@ -65,6 +65,9 @@ int main(int argc, char **argv)
 {
     mtc_init("study", 7);
 
+    vec4_print(quaternion_mul(quaternion_id(), quaternion_roll(-1.7)));
+    printf("\n\n");
+
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         mtc_err("sdl init error: %s", SDL_GetError());
         return 1;
@@ -74,14 +77,14 @@ int main(int argc, char **argv)
         mtc_err("ttf init error: %s", TTF_GetError());
         return 1;
     }
-    
+
 	SDL_Window *win = SDL_CreateWindow("Hello World!",
                                        100, 100, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (!win) {
         mtc_err("SDL_CreateWindow Error: %s", SDL_GetError());
 		return 1;
 	}
-    
+
 	m_render = SDL_CreateRenderer(win, -1,
                                   SDL_RENDERER_ACCELERATED |
                                   SDL_RENDERER_PRESENTVSYNC);

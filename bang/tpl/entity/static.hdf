@@ -4,3 +4,13 @@ podium [type=static] {
     position = 0 0 0
     scale = 1.0 1.0 1.0
 }
+
+focus [type=static] {
+    rendable = focus/focus.obj
+    material = focus/focus.mat
+    position = 0 3 0
+#    rotation = quaternion_mul(quaternion_id(), quaternion_yaw(-1.7))
+#    rotation = 0.75 0.00 0.00 0.66
+    scale = 0.02 0.02 0.02
+#    scale = 1.0 1.0 1.0
+}

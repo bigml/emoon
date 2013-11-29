@@ -217,6 +217,7 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
     err = ne_load_file_len(fname, &buf, &totallen);
     if (err != STATUS_OK) return nerr_pass(err);
 
+    glEnable(GL_TEXTURE_2D);
     glGenTextures(1, &tnode->tex);
     glBindTexture(GL_TEXTURE_2D, tnode->tex);
 
@@ -355,6 +356,7 @@ NEOERR* mast_dds_load(char *dir, char *name, RendAsset **a)
 
     mtex_set_filtering_anisotropic(tnode->tex);
 
+    glDisable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     SAFE_FREE(buf);
@@ -412,6 +414,53 @@ void mast_lut_unload(void *p)
 {
     if (!p) return;
 }
+
+NEOERR* mast_tex_sdl_load(char *dir, char *name, RendAsset **a)
+{
+    char fname[PATH_MAX];
+
+    if (dir) snprintf(fname, sizeof(fname), "%s%s", dir, name);
+    else strncpy(fname, name, sizeof(fname));
+
+    SDL_Surface* surface = IMG_Load(fname);
+    if (!surface) return nerr_raise(NERR_IO, "load %s failure", fname);
+
+    TexAsset *tnode = mtex_node_new();
+    if (!tnode) return nerr_raise(NERR_NOMEM, "alloc texture");
+
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &tnode->tex);
+    glBindTexture(GL_TEXTURE_2D, tnode->tex);
+
+    int mode = GL_RGB;
+    if(surface->format->BytesPerPixel == 4) {
+        mode = GL_RGBA;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, mode, surface->w, surface->h,
+                 0, mode, GL_UNSIGNED_BYTE, surface->pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    SDL_FreeSurface(surface);
+
+    *a = (RendAsset*)tnode;
+
+    return STATUS_OK;
+}
+
+void mast_tex_sdl_unload(void *p)
+{
+    if (!p) return;
+}
+
 
 
 TexAsset* mast_texture_new(GLuint texid)
