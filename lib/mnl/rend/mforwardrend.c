@@ -4,7 +4,10 @@
 
 typedef struct {
     GLuint fbo;
-    GLuint rbo;
+    GLuint rbo;                 /* depth rend buffer */
+    GLuint crbo;                /* color attachment depth rend buffer
+                                   (used only on multisample) */
+    GLuint res_fbo;             /* multisample result fbo (used only on multisample) */
     GLuint tex;
 
     CameraEntity *cam;
@@ -243,12 +246,21 @@ NEOERR* mrend_forwardrend_init(char *basedir)
     m_render->shadow_tex = 0;
     m_render->tex_counter = 0;
     m_render->num_lights = 0;
+    m_render->res_fbo = 0;
 
     int width = mrend_viewport_width();
     int height = mrend_viewport_height();
+    int multisample = mrend_get_multisamples();
 
     /*
-     * texture object
+     * on multisample:
+     *   rbo, tex ==> fbo
+     * else:
+     *   rbo, crbo ==> fbo, tex ==> res_fbo
+     */
+
+    /*
+     * tex (final texture)
      */
     glGenTextures(1, &m_render->tex);
     glBindTexture(GL_TEXTURE_2D, m_render->tex);
@@ -263,28 +275,59 @@ NEOERR* mrend_forwardrend_init(char *basedir)
     MGL_CHECK_ERROR();
 
     /*
-     * render buffer object to store middle depth info
+     * rbo (depth rend buffer)
      */
     glGenRenderbuffers(1, &m_render->rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, m_render->rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    if (multisample > 0)
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample,
+                                         GL_DEPTH_COMPONENT24, width, height);
+    else glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     MGL_CHECK_ERROR();
 
     /*
-     * frame buffer object
+     * fbo, rbo => fbo
      */
     glGenFramebuffers(1, &m_render->fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                               GL_RENDERBUFFER, m_render->rbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, m_render->tex, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    /*
-     * check status
-     */
-    MGL_CHECK_FRAMEBUFFERSTATUS();
+    if (multisample > 0) {
+        /*
+         * crbo (color rend buffer) ==> fbo
+         */
+        glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+        glGenRenderbuffers(1, &m_render->crbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_render->crbo);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample,
+                                         GL_RGBA16F, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                  GL_RENDERBUFFER, m_render->crbo);
+
+        MGL_CHECK_FRAMEBUFFERSTATUS();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        /*
+         * res_fbo, tex ==> res_fbo
+         */
+        glGenFramebuffers(1, &m_render->res_fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_render->res_fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D, m_render->tex, 0);
+        MGL_CHECK_FRAMEBUFFERSTATUS();
+    } else {
+        /*
+         * tex ==> fbo
+         */
+        glBindFramebuffer(GL_FRAMEBUFFER, m_render->fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D, m_render->tex, 0);
+        MGL_CHECK_FRAMEBUFFERSTATUS();
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -302,6 +345,7 @@ NEOERR* mrend_forwardrend_init(char *basedir)
 
     mast_mat_add_item_int(me, "width",  mrend_viewport_width());
     mast_mat_add_item_int(me, "height", mrend_viewport_height());
+    mast_mat_add_item_int(me, "msaa", mrend_get_multisamples());
     mast_mat_add_item_texture(me, "diffuse", mast_texture_new(m_render->tex));
 
     return STATUS_OK;
@@ -422,6 +466,19 @@ void mrend_forwardrend_end()
     MatEntry *me;
     NEOERR *err;
 
+    /*
+     * multisample
+     */
+    if (m_render->res_fbo > 0) {
+        int width = mrend_viewport_width();
+        int height = mrend_viewport_height();
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_render->fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_render->res_fbo);
+        glBlitFramebuffer(0, 0, width, height,
+                          0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0.2, 0.2, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -457,6 +514,11 @@ void mrend_forwardrend_finish()
     glDeleteFramebuffers(1, &m_render->fbo);
     glDeleteRenderbuffers(1, &m_render->rbo);
     glDeleteTextures(1, &m_render->tex);
+
+    if (m_render->res_fbo > 0) {
+        glDeleteRenderbuffers(1, &m_render->crbo);
+        glDeleteFramebuffers(1, &m_render->res_fbo);
+    }
 
     free(m_render);
     m_render = NULL;

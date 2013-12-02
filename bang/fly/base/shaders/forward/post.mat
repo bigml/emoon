@@ -1,4 +1,7 @@
 shader vertex = shaders/forward/post.vs
 shader fragment = shaders/forward/post.fs
+shader mmath = shaders/math.fs
+shader color = shaders/color.fs
+shader aa = shaders/anti_aliasing.fs
 texture vignetting = resources/vignetting.dds
 texture3d lut = resources/identity.lut

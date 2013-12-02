@@ -137,6 +137,11 @@ float mrend_viewport_ratio()
     return (float)m_render->height / (float)m_render->width;
 }
 
+int mrend_get_multisamples()
+{
+    return m_render->multisamples;
+}
+
 void mrend_viewport_screenshot(char *name)
 {
     char fname[PATH_MAX];
