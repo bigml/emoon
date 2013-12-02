@@ -28,9 +28,16 @@ unsigned long mtimer_stop(char *fmt, ...)
         va_start(ap, fmt);
         vsnprintf(timer_msg, TIMER_MSG_LEN, fmt, ap);
         va_end(ap);
-        
+
         mtc_foo("%s : %lu usecs", timer_msg, elapsed);
     }
-    
+
     return elapsed;
+}
+
+uint32_t mtimer_tick_callback(uint32_t interval, void *param)
+{
+    g_time_upms += interval;
+
+    return interval;
 }

@@ -136,6 +136,7 @@ static void mforward_use_mat_entry(StaticEntity *e, MatEntry *me)
      *   I. uniform LIGHT
      */
     SET_UNIFORM_3F("CAMERA_POS", m_render->cam->base.position);
+    SET_UNIFORM_1F("TIME_UPMS", (float)g_time_upms);
 
     mforward_set_mat_attrmap(me);
 

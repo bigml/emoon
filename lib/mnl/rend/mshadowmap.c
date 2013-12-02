@@ -26,6 +26,8 @@ static void mshadow_use_mat_entry(StaticEntity *e, MatEntry *me)
     SET_UNIFORM_MATRIX("WORLD_MATRIX", m_render->wmatrix);
     SET_UNIFORM_MATRIX("VIEW_MATRIX",  m_render->vmatrix);
     SET_UNIFORM_MATRIX("PROJ_MATRIX",  m_render->pmatrix);
+
+    SET_UNIFORM_1F("TIME_UPMS", (float)g_time_upms);
 }
 
 static void mshadow_disuse_mat_entry()
@@ -145,7 +147,7 @@ void mrend_shadowmap_rend_static(RendEntity *ep)
 
     e = (StaticEntity*)ep;
     r = (VbufferAsset*)e->base.rendable;
-    m = (MatAsset*)m_render->dmat;
+    m = e->base.shadowmat ? (MatAsset*)e->base.shadowmat : (MatAsset*)m_render->dmat;
 
     if (!r || !m || !e->base.cast_shadows) return;
 

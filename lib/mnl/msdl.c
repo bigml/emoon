@@ -27,31 +27,6 @@ int msdl_load_extensions()
     return 0;
 }
 
-#if 0
-void msdl_load_extensions()
-{
-    SDL_GL_LoadExtension(GLPROGRAMPARAMETERIFN, glProgramParameteri);
-    SDL_GL_LoadExtension(GLGENERATEMIPMAPFN, glGenerateMipmap);
-    
-    SDL_GL_LoadExtension(GLGENFRAMEBUFFERSFN, glGenFramebuffers);
-    SDL_GL_LoadExtension(GLBINDFRAMEBUFFERFN, glBindFramebuffer);
-    SDL_GL_LoadExtension(GLGENRENDERBUFFERSFN, glGenRenderbuffers);
-    SDL_GL_LoadExtension(GLBINDRENDERBUFFERFN, glBindRenderbuffer);
-    SDL_GL_LoadExtension(GLRENDERBUFFERSTORAGEFN, glRenderbufferStorage);
-    SDL_GL_LoadExtension(GLFRAMEBUFFERRENDERBUFFERFN, glFramebufferRenderbuffer);
-    SDL_GL_LoadExtension(GLFRAMEBUFFERTEXTURE2DFN, glFramebufferTexture2D);
-    SDL_GL_LoadExtension(GLCHECKFRAMEBUFFERSTATUSFN, glCheckFramebufferStatus);
-    SDL_GL_LoadExtension(GLDELETEFRAMEBUFFERSFN, glDeleteFramebuffers);
-    SDL_GL_LoadExtension(GLDELETERENDERBUFFERSFN, glDeleteRenderbuffers);
-    
-    SDL_GL_LoadExtension(GLRENDERBUFFERSTORAGEMULTISAMPLEFN,
-                         glRenderbufferStorageMultisample);
-    SDL_GL_LoadExtension(GLBLITFRAMEBUFFERFN, glBlitFramebuffer);
-    SDL_GL_LoadExtension(GLPATCHPARAMETERIFN, glPatchParameteri);
-    SDL_GL_LoadExtension(GLDRAWELEMENTSINSTANCEDFN, glDrawElementsInstanced);
-}
-#endif
-
 void msdl_trace_info()
 {
     mtc_dbg("OpenGL Info");

@@ -1,4 +1,4 @@
-shader vertex = base/shaders/forward/static.vs
+shader vertex = focus/focus.vs
 shader fragment = base/shaders/forward/static.fs
 shader shadow = base/shaders/shadow.fs
 texture diffuse = focus/focus.jpg

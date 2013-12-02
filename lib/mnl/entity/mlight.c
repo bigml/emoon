@@ -58,6 +58,7 @@ static NEOERR* mlight_new(HDF *enode, char *dir, RendEntity **pe)
     e->base.receive_shadows = true;
     e->base.cast_shadows = true;
     e->base.position = vec3_from_string(hdf_get_value(enode, "position", "0 0 0"));
+    e->base.shadowmat = NULL;
 
 #define SET_CONFIG_1I(val, key)                 \
     tmps = hdf_get_value(enode, key, NULL);     \

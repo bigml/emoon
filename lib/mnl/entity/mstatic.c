@@ -12,7 +12,7 @@ static void mstatic_free(void *p)
 
 static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
 {
-    char *ename, *etype, *ren, *mat, *pos;
+    char *ename, *etype, *ren, *mat, *pos, *smat;
     NEOERR *err;
 
     MCS_NOT_NULLB(enode, pe);
@@ -23,6 +23,7 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     etype = mcs_obj_attr(enode, "type");
     ren = hdf_get_value(enode, "rendable", NULL);
     mat = hdf_get_value(enode, "material", NULL);
+    smat = hdf_get_value(enode, "shadow_material", NULL);
     pos = hdf_get_value(enode, "position", "0 0 0");
 
     if (etype && strcmp(etype, "static"))
@@ -37,12 +38,18 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     e->base.receive_shadows = true;
     e->base.cast_shadows = true;
     e->base.position = vec3_from_string(pos);
+    e->base.shadowmat = NULL;
 
     err = masset_node_load(dir, ren, &e->base.rendable);
     if (err != STATUS_OK) goto errorexit;
 
     err = masset_node_load(dir, mat, &e->base.material);
     if (err != STATUS_OK) goto errorexit;
+
+    if (smat) {
+        err = masset_node_load(dir, smat, &e->base.shadowmat);
+        if (err != STATUS_OK) goto errorexit;
+    }
 
     e->rotation = vec4_from_string(hdf_get_value(enode, "rotation", "0 0 0 1"));
     e->scale = vec3_from_string(hdf_get_value(enode, "scale", "1 1 1"));

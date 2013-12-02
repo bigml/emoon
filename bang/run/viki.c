@@ -7,6 +7,7 @@
 
 HDF  *g_cfg = NULL;
 HASH *g_datah = NULL;
+uint32_t g_time_upms = 0;
 
 int main(int argc, char **argv)
 {
@@ -34,6 +35,10 @@ int main(int argc, char **argv)
     err = lrend_init();
     DIE_NOK(err);
 
+    g_time_upms = 0;
+
+    SDL_TimerID tid = SDL_AddTimer(10, mtimer_tick_callback, NULL);
+
     bool running = true;
     SDL_Event e;
     while (running) {
@@ -54,6 +59,8 @@ int main(int argc, char **argv)
     lrend_finish();
     mrend_finish();
     mcfg_cleanup(&g_cfg);
+
+    SDL_RemoveTimer(tid);
 
     return 0;
 }

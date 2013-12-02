@@ -32,5 +32,7 @@ void          mtimer_start(void);
 unsigned long mtimer_stop(char *fmt, ...)
                           ATTRIBUTE_PRINTF(1, 2);
 
+uint32_t mtimer_tick_callback(uint32_t interval, void *param);
+
 __END_DECLS
 #endif    /* __MTIMER_H__ */

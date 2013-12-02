@@ -39,6 +39,7 @@ static NEOERR* mcamera_new(HDF *enode, char *dir, RendEntity **pe)
     e->base.receive_shadows = true;
     e->base.cast_shadows = true;
     e->base.position = vec3_from_string(pos);
+    e->base.shadowmat = NULL;
 
     /* s must be a float macro */
 #define str(s) #s

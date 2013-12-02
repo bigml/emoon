@@ -1,0 +1,2 @@
+shader vertex = focus/depth.vs
+shader fragment = base/shaders/depth.fs

@@ -25,6 +25,7 @@ typedef struct {
 
     RendAsset *rendable;
     RendAsset *material;
+    RendAsset *shadowmat;
 } RendEntity;
 
 typedef struct {
