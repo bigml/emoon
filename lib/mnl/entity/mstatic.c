@@ -54,6 +54,20 @@ static NEOERR* mstatic_new(HDF *enode, char *dir, RendEntity **pe)
     e->rotation = vec4_from_string(hdf_get_value(enode, "rotation", "0 0 0 1"));
     e->scale = vec3_from_string(hdf_get_value(enode, "scale", "1 1 1"));
 
+    e->t = g_time_upms;
+
+    e->phy.radius = 0.0;
+    e->phy.m = mcs_get_float_value(enode, "weight", 0);
+    e->phy.ffric = mcs_get_float_value(enode, "f_fric", 0);
+    e->phy.fpull = mcs_get_float_value(enode, "f_pull", 0);
+    e->phy.f = vec3_zero();
+    e->phy.fmax = vec3_from_string(hdf_get_value(enode, "f_max", "0 0 0"));
+    e->phy.v = vec3_from_string(hdf_get_value(enode, "velocity", "0 0 0"));
+    e->phy.a = vec3_from_string(hdf_get_value(enode, "acceleration", "0 0 0"));
+
+    e->evt.engine_on = false;
+    e->evt.f = vec3_zero();
+
     MatAsset *m = (MatAsset*)e->base.material;
     MatEntry *me;
     for (int i = 0; i < m->entries->num; i++) {

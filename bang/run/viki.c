@@ -35,16 +35,20 @@ int main(int argc, char **argv)
     err = lrend_init();
     DIE_NOK(err);
 
-    g_time_upms = 0;
+    err = mact_init();
+    DIE_NOK(err);
 
-    SDL_TimerID tid = SDL_AddTimer(10, mtimer_tick_callback, NULL);
+    err = lact_init();
+    DIE_NOK(err);
+
+    g_time_upms = 0;
 
     bool running = true;
     SDL_Event e;
     while (running) {
         while (SDL_PollEvent(&e)) {
-            mevt_on(e, &running);
-            levt_on(e, &running);
+            mact_on(e, &running);
+            lact_on(e, &running);
         }
 
         mrend_update();
@@ -56,11 +60,11 @@ int main(int argc, char **argv)
         mrend_present();
     }
 
+    lact_finish();
     lrend_finish();
+    mact_finish();
     mrend_finish();
     mcfg_cleanup(&g_cfg);
-
-    SDL_RemoveTimer(tid);
 
     return 0;
 }

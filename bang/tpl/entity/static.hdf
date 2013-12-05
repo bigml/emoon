@@ -8,10 +8,15 @@ podium [type=static] {
 focus [type=static] {
     rendable = focus/focus.obj
     material = focus/focus.mat
-    shadow_material = focus/depth.mat
+#    shadow_material = focus/depth.mat
     position = 0 3 0
+    scale = 0.02 0.02 0.02
 #    rotation = quaternion_mul(quaternion_id(), quaternion_yaw(-1.7))
 #    rotation = 0.75 0.00 0.00 0.66
-    scale = 0.02 0.02 0.02
 #    scale = 1.0 1.0 1.0
+    weight = 10
+    f_max = 2000 2000 2000
+    f_pull = -110
+    f_fric = 100
+#    acceleration = 0.0 0.0 -16.5
 }

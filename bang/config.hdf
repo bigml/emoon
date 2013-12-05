@@ -17,7 +17,7 @@ Mevent {
 
 Window {
     title = 碰撞测试
-    x = 100
+    x = 1000
     y = 100
     w = 1200
     h = 900
