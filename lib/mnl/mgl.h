@@ -8,6 +8,8 @@ __BEGIN_DECLS
 void mgl_push_matrix();
 void mgl_rend_plane();
 void mgl_pop_matrix();
+void mgl_rend_axis();
+void mgl_rend_axis_plane();
 
 char* mgl_error_str(GLenum error);
 char* mgl_error_str_framebuffer(GLenum error);

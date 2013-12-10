@@ -1,10 +1,7 @@
 #include "mheads.h"
 
-static EntityDriver *entity_drivers[ENTITY_DRIVER_NUM] = {
-    &static_entity_driver,
-    &camera_entity_driver,
-    &light_entity_driver,
-};
+static EntityDriver *entity_drivers[ENTITY_DRIVER_MAXNUM] = {0};
+static int m_driver_num = 0;
 
 #ifdef __MACH__
 static int mentity_config(struct dirent *ent)
@@ -22,9 +19,9 @@ static int mentity_type(char *type)
 {
     if (!type) return -1;
 
-    if (!strcmp(type, "static")) return 0;
-    if (!strcmp(type, "camera")) return 1;
-    if (!strcmp(type, "light")) return 2;
+    for (int i = 0; i < m_driver_num; i++) {
+        if (!strcmp(type, entity_drivers[i]->typename)) return i;
+    }
 
     return -1;
 }
@@ -56,6 +53,20 @@ NEOERR* mentity_init()
         hash_insert(g_datah, ENTITY_KEY, (void*)eh);
     }
 
+    m_driver_num = 0;
+
+    err = mentity_driver_regist(&static_entity_driver);
+    if (err != STATUS_OK) return nerr_pass(err);
+
+    err = mentity_driver_regist(&dynamic_entity_driver);
+    if (err != STATUS_OK) return nerr_pass(err);
+
+    err = mentity_driver_regist(&camera_entity_driver);
+    if (err != STATUS_OK) return nerr_pass(err);
+
+    err = mentity_driver_regist(&light_entity_driver);
+    if (err != STATUS_OK) return nerr_pass(err);
+
     return STATUS_OK;
 }
 
@@ -64,6 +75,21 @@ void mentity_finish()
     HASH *eh = hash_lookup(g_datah, ENTITY_KEY);
     hash_destroy(&eh);
     hash_remove(g_datah, ENTITY_KEY);
+}
+
+NEOERR* mentity_driver_regist(EntityDriver *driver)
+{
+    MCS_NOT_NULLA(driver);
+
+    if (m_driver_num >= ENTITY_DRIVER_MAXNUM)
+        return nerr_raise(NERR_ASSERT, "entity driver array full");
+
+    entity_drivers[m_driver_num] = driver;
+    driver->typeid = m_driver_num;
+
+    m_driver_num++;
+
+    return STATUS_OK;
 }
 
 NEOERR* mentity_node_new(HDF *enode, char *dir, RendEntity **e)
@@ -106,6 +132,21 @@ RendEntity* mentity_node_get(char *key)
     if (eh) return hash_lookup(eh, key);
 
     return NULL;
+}
+
+void mentity_node_onact(RendEntity *ent, SDL_Event e, bool *running)
+{
+    if (!ent) return;
+
+    if (entity_drivers[ent->typeid]->onact)
+        entity_drivers[ent->typeid]->onact(ent, e, running);
+}
+
+void mentity_node_update(RendEntity *e, float dt)
+{
+    if (!e) return;
+
+    if (entity_drivers[e->typeid]->update) entity_drivers[e->typeid]->update(e, dt);
 }
 
 NEOERR* mentity_load_file(char *dir, char *name, char *assetdir)

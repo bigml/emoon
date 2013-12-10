@@ -11,6 +11,8 @@ uint32_t g_time_upms = 0;
 
 int main(int argc, char **argv)
 {
+    uint32_t time_lastms;
+    float dt;
     NEOERR *err;
 
     msys_makesure_coredump();
@@ -42,20 +44,31 @@ int main(int argc, char **argv)
     DIE_NOK(err);
 
     g_time_upms = 0;
+    time_lastms = 0;
 
     bool running = true;
     SDL_Event e;
     while (running) {
+        dt = ((float)g_time_upms - time_lastms) / 1000.0;
+        time_lastms = g_time_upms;
+
         while (SDL_PollEvent(&e)) {
             mact_on(e, &running);
             lact_on(e, &running);
         }
 
-        mrend_update();
-        lrend_update();
+        mrend_update(dt);
+        lrend_update(dt);
 
-        mrend_rend();
-        lrend_rend();
+        mrend_shadowmap_begin();
+        mrend_shadowmap_rend();
+        lrend_shadowmap_rend();
+        mrend_shadowmap_end();
+
+        mrend_forwardrend_begin();
+        mrend_forwardrend_rend();
+        lrend_forwardrend_rend();
+        mrend_forwardrend_end();
 
         mrend_present();
     }

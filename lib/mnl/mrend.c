@@ -58,45 +58,69 @@ error:
     return nerr_raise(NERR_ASSERT, "sdl error %s", SDL_GetError());
 }
 
-NEOERR* mrend_update()
-{
-    return STATUS_OK;
-}
-
-NEOERR* mrend_rend()
+NEOERR* mrend_update(float dt)
 {
     RendEntity *e;
-    char *key = NULL;
+    char *key;
     HASH *eh;
 
     eh = hash_lookup(g_datah, ENTITY_KEY);
 
     MCS_NOT_NULLA(eh);
 
-    /*
-     * shadow mapper
-     */
-    mrend_shadowmap_begin();
-    e = hash_next(eh, (void**)&key);
-    while (e) {
-        if (e->typeid == ENTITY_TYPE_STATIC) mrend_shadowmap_rend_static(e);
-
-        e = hash_next(eh, (void**)&key);
-    }
-    mrend_shadowmap_end();
-
-    /*
-     * forward render
-     */
-    mrend_forwardrend_begin();
     key = NULL;
     e = hash_next(eh, (void**)&key);
     while (e) {
-        if (e->typeid == ENTITY_TYPE_STATIC) mrend_forwardrend_rend_static(e);
+        if (e->typeid > ENTITY_TYPE_LIGHT) mentity_node_update(e, dt);
 
         e = hash_next(eh, (void**)&key);
     }
-    mrend_forwardrend_end();
+
+    return STATUS_OK;
+}
+
+NEOERR* mrend_shadowmap_rend()
+{
+    RendEntity *e;
+    char *key;
+    HASH *eh;
+
+    eh = hash_lookup(g_datah, ENTITY_KEY);
+
+    MCS_NOT_NULLA(eh);
+
+    key = NULL;
+    e = hash_next(eh, (void**)&key);
+    while (e) {
+        if (e->typeid == ENTITY_TYPE_STATIC ||
+            e->typeid == ENTITY_TYPE_DYNAMIC)
+            mrend_shadowmap_rend_static(e);
+
+        e = hash_next(eh, (void**)&key);
+    }
+
+    return STATUS_OK;
+}
+
+NEOERR* mrend_forwardrend_rend()
+{
+    RendEntity *e;
+    char *key;
+    HASH *eh;
+
+    eh = hash_lookup(g_datah, ENTITY_KEY);
+
+    MCS_NOT_NULLA(eh);
+
+    key = NULL;
+    e = hash_next(eh, (void**)&key);
+    while (e) {
+        if (e->typeid == ENTITY_TYPE_STATIC ||
+            e->typeid == ENTITY_TYPE_DYNAMIC)
+            mrend_forwardrend_rend_static(e);
+
+        e = hash_next(eh, (void**)&key);
+    }
 
     return STATUS_OK;
 }

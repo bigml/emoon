@@ -57,14 +57,19 @@ static NEOERR* mcamera_new(HDF *enode, char *dir, RendEntity **pe)
 }
 
 EntityDriver camera_entity_driver = {
-    .name = "camera",
+    .typename = "camera",
     .new = mcamera_new,
+    .onact = NULL,
+    .update = NULL,
     .free = mcamera_free,
 };
 
 
 mat4 mentity_camera_view_matrix(CameraEntity *c)
 {
+    /*
+     * HEART: redefine the 3d coordinate
+     */
     return mat4_view_look_at(c->base.position, c->target, vec3_new(0.0f, 1.0f, 0.0f));
 }
 

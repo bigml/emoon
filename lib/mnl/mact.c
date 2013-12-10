@@ -11,10 +11,27 @@ NEOERR* mact_init()
 
 NEOERR* mact_on(SDL_Event e, bool *running)
 {
+    RendEntity *ent;
+    char *key;
+    HASH *eh;
+
+    eh = hash_lookup(g_datah, ENTITY_KEY);
+
+    MCS_NOT_NULLA(eh);
+
+    key = NULL;
+    ent = hash_next(eh, (void**)&key);
+    while (ent) {
+        if (ent->typeid > ENTITY_TYPE_LIGHT) mentity_node_onact(ent, e, running);
+
+        ent = hash_next(eh, (void**)&key);
+    }
+
     if (e.type == SDL_KEYDOWN) {
         switch (e.key.keysym.sym) {
         case SDLK_ESCAPE:
             *running = false;
+            return STATUS_OK;
             break;
         default:
             break;

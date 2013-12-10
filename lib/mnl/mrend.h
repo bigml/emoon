@@ -15,8 +15,9 @@ typedef struct {
 } RendEntry;
 
 NEOERR* mrend_init(char *title, int x, int y, int w, int h, int flags);
-NEOERR* mrend_update();
-NEOERR* mrend_rend();
+NEOERR* mrend_update(float dt);
+NEOERR* mrend_shadowmap_rend();
+NEOERR* mrend_forwardrend_rend();
 void    mrend_present();
 void    mrend_finish();
 

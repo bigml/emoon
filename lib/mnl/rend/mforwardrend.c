@@ -414,6 +414,8 @@ void mrend_forwardrend_begin()
     glLoadMatrixf(m_render->pmatrix);
 
     glEnable(GL_DEPTH_TEST);
+    mgl_rend_axis();
+
     glEnable(GL_CULL_FACE);
 
     MGL_CHECK_ERROR();
@@ -438,6 +440,9 @@ void mrend_forwardrend_rend_static(RendEntity *ep)
 
     //mtc_dbg("rend static object %s", e->base.name);
 
+    /*
+     * HEART: reinit object's model
+     */
     mat4_to_array(mat4_world(e->base.position, e->scale, e->rotation), m_render->wmatrix);
 
     for (int i = 0; i < r->num_surfaces; i++) {

@@ -6,10 +6,11 @@
 __BEGIN_DECLS
 
 #define ENTITY_KEY "_entities"
-#define ENTITY_DRIVER_NUM 3
+#define ENTITY_DRIVER_MAXNUM 100
 
 enum {
     ENTITY_TYPE_STATIC = 0,
+    ENTITY_TYPE_DYNAMIC,
     ENTITY_TYPE_CAMERA,
     ENTITY_TYPE_LIGHT
 };
@@ -29,13 +30,18 @@ typedef struct {
 } RendEntity;
 
 typedef struct {
-    char *name;
+    char *typename;
+    int typeid;
     NEOERR* (*new)(HDF *enode, char *dir, RendEntity **e);
+    NEOERR* (*onact)(RendEntity *ent, SDL_Event e, bool *running);
+    NEOERR* (*update)(RendEntity *p, float dt);
     void (*free)(void *p);
 } EntityDriver;
 
 NEOERR* mentity_init();
 void    mentity_finish();
+
+NEOERR* mentity_driver_regist(EntityDriver *driver);
 
 /*
  * dir: asset files's abs path for assembly entity, can be NULL
@@ -43,6 +49,15 @@ void    mentity_finish();
 NEOERR*     mentity_node_new(HDF *enode, char *dir, RendEntity **e);
 void        mentity_node_free(void *p);
 RendEntity* mentity_node_get(char *key);
+
+/*
+ * sdl event on entity, called per frame, per action, per node
+ */
+void        mentity_node_onact(RendEntity *ent, SDL_Event e, bool *running);
+/*
+ * update node entity, called per frame, per node
+ */
+void        mentity_node_update(RendEntity *e, float dt);
 
 /*
  * new entity will be stored in g_datah

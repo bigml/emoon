@@ -18,6 +18,7 @@ $(DEPEND): $(SOURCES)
 
 preload:
 	@$(MAKE) -C $(LIBBASE)
+	@$(MAKE) -C $(LOCALROBOT)
 	@$(MAKE) -C $(LOCALLIB)
 
 -include $(DEPEND)

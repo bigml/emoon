@@ -31,6 +31,53 @@ void mgl_pop_matrix()
     glPopMatrix();
 }
 
+void mgl_rend_axis()
+{
+    glBegin(GL_LINES);
+    glColor3f(0, 0, 1);
+    glVertex3f(-1000, 0, 0);
+    glVertex3f(1000, 0, 0);
+    glEnd();
+
+    glBegin(GL_LINES);
+    glColor3f(0, 1, 0);
+    glVertex3f(0, -1000, 0);
+    glVertex3f(0, 1000, 0);
+    glEnd();
+
+    glBegin(GL_LINES);
+    glColor3f(1, 0, 0);
+    glVertex3f(0, 0, -1000);
+    glVertex3f(0, 0, 1000);
+    glEnd();
+}
+
+void mgl_rend_axis_plane()
+{
+    glBegin(GL_POLYGON);
+    glColor3f(1, 0, 0);
+    glVertex3f(-1000, 0, 1000);
+    glVertex3f(1000, 0, 1000);
+    glVertex3f(1000, 0, -1000);
+    glVertex3f(-1000, 0, -1000);
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glColor3f(0, 1, 0);
+    glVertex3f(-1000, -1000, 0);
+    glVertex3f(1000, -1000, 0);
+    glVertex3f(1000, 1000, 0);
+    glVertex3f(-1000, 1000, 0);
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glColor3f(0, 0, 1);
+    glVertex3f(0, -1000, 1000);
+    glVertex3f(0, -1000, -1000);
+    glVertex3f(0, 1000, -1000);
+    glVertex3f(0, 1000, 1000);
+    glEnd();
+}
 
 char* mgl_error_str(GLenum error)
 {

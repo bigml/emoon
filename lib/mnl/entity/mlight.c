@@ -86,8 +86,10 @@ static NEOERR* mlight_new(HDF *enode, char *dir, RendEntity **pe)
 }
 
 EntityDriver light_entity_driver = {
-    .name = "light",
+    .typename = "light",
     .new = mlight_new,
+    .onact = NULL,
+    .update = NULL,
     .free = mlight_free,
 };
 

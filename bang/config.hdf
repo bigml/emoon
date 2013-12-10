@@ -17,9 +17,9 @@ Mevent {
 
 Window {
     title = 碰撞测试
-    x = 1000
-    y = 100
-    w = 1200
-    h = 900
+    x = 800
+    y = 80
+    w = 960
+    h = 640
     flags = 4
 }
